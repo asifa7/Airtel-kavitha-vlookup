@@ -1,0 +1,237 @@
+import { RawDataRow } from '../types';
+
+export const SAMPLE_MASTER_ROWS: RawDataRow[] = [
+  {
+    Customer_Creation_Date: '21-Apr-2024 09:14:04',
+    Account_Number: '20017285175',
+    DSL_ID: '01118463713_wifi',
+    Voice_ID: '01141437857',
+    Del_Status: 'Active',
+    Circle_Code: '102',
+    Circle_Name: 'Delhi',
+    Customer_Name: 'Sarita',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '499 WiFi_40Mbps FLBPL99'
+  },
+  {
+    Customer_Creation_Date: '28-Apr-2024 16:28:22',
+    Account_Number: '20017432052',
+    DSL_ID: '019118536989_wifi',
+    Voice_ID: '01914041570',
+    Del_Status: 'Active',
+    Circle_Code: '117',
+    Circle_Name: 'Jammu n Kashmir',
+    Customer_Name: 'WAHID MAHROOF',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Advance_Billing Gold',
+    Customer_Plan: '499 WiFi'
+  },
+  {
+    Customer_Creation_Date: '01-May-2024 15:06:04',
+    Account_Number: '20017500138',
+    DSL_ID: '01118571826_wifi',
+    Voice_ID: '01142610172',
+    Del_Status: 'Active',
+    Circle_Code: '102',
+    Circle_Name: 'Delhi',
+    Customer_Name: 'Ranveer',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '498 WiFi+DTH 40Mbps_PKG'
+  },
+  {
+    Customer_Creation_Date: '06-May-2024 10:45:51',
+    Account_Number: '20017603724',
+    DSL_ID: '0643218624704_wifi',
+    Voice_ID: '06432456074',
+    Del_Status: 'Suspended',
+    Circle_Code: '119',
+    Circle_Name: 'Bihar',
+    Customer_Name: 'MD Nasim',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Advance_Billing Gold',
+    Customer_Plan: '499 WiFi'
+  },
+  {
+    Customer_Creation_Date: '08-May-2024 13:30:55',
+    Account_Number: '20017656167',
+    DSL_ID: '082118651481_wifi',
+    Voice_ID: '08214535027',
+    Del_Status: 'Active',
+    Circle_Code: '105',
+    Circle_Name: 'Karnataka',
+    Customer_Name: 'Shafiya',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '498 WiFi+DTH 40Mbps'
+  },
+  {
+    Customer_Creation_Date: '09-May-2024 18:24:10',
+    Account_Number: '20017686313',
+    DSL_ID: '014118666816_wifi',
+    Voice_ID: '01414506716',
+    Del_Status: 'Active',
+    Circle_Code: '121',
+    Circle_Name: 'Rajasthan',
+    Customer_Name: 'Mohsin',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '499 WiFi 40Mbps'
+  },
+  {
+    Customer_Creation_Date: '24-May-2024 11:54:19',
+    Account_Number: '20017971525',
+    DSL_ID: '01118811960_wifi',
+    Voice_ID: '01143065844',
+    Del_Status: 'Active',
+    Circle_Code: '102',
+    Circle_Name: 'Delhi',
+    Customer_Name: 'Rahul',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '999 WiFi_200Mbps'
+  },
+  {
+    Customer_Creation_Date: '26-May-2024 14:43:47',
+    Account_Number: '20018014742',
+    DSL_ID: '012418833844_wifi',
+    Voice_ID: '01244453482',
+    Del_Status: 'Active',
+    Circle_Code: '108',
+    Circle_Name: 'Haryana',
+    Customer_Name: 'Azad',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '999 WiFi_100Mbps_PKGTE'
+  },
+  {
+    Customer_Creation_Date: '30-May-2024 12:11:54',
+    Account_Number: '20018078667',
+    DSL_ID: '08911886661_wifi',
+    Voice_ID: '08914287871',
+    Del_Status: 'Active',
+    Circle_Code: '104',
+    Circle_Name: 'Andhra Pradesh',
+    Customer_Name: 'Karanam',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '699 WiFi 40Mbps'
+  },
+  {
+    Customer_Creation_Date: '15-Jun-2024 10:27:06',
+    Account_Number: '20018428744',
+    DSL_ID: '04019045977_wifi',
+    Voice_ID: '04045022801',
+    Del_Status: 'Active',
+    Circle_Code: '104',
+    Circle_Name: 'Andhra Pradesh',
+    Customer_Name: 'Satish',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '498 WiFi+DTH 40Mbps'
+  },
+  {
+    Customer_Creation_Date: '01-Jul-2024 19:42:18',
+    Account_Number: '20018759599',
+    DSL_ID: '04419215575_wifi',
+    Voice_ID: '04447988087',
+    Del_Status: 'Active',
+    Circle_Code: '114',
+    Circle_Name: 'Tamilnadu',
+    Customer_Name: 'Thanigaivel',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '999 WiFi_200Mbps'
+  },
+  {
+    Customer_Creation_Date: '03-Jul-2024 15:44:14',
+    Account_Number: '20018805235',
+    DSL_ID: '0862419238980_wifi',
+    Voice_ID: '08624469790',
+    Del_Status: 'Active',
+    Circle_Code: '104',
+    Circle_Name: 'Andhra Pradesh',
+    Customer_Name: 'Naymoon basha',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '198 Broadband'
+  },
+  {
+    Customer_Creation_Date: '10-Jul-2024 11:20:00',
+    Account_Number: '20018912345',
+    DSL_ID: '04019250777_wifi',
+    Voice_ID: '04045077795',
+    Del_Status: 'Active',
+    Circle_Code: '104',
+    Circle_Name: 'Andhra Pradesh',
+    Customer_Name: 'Venkata Rao',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Platinum',
+    Customer_Plan: '1499 WiFi_300Mbps'
+  },
+  {
+    Customer_Creation_Date: '12-Jul-2024 14:15:30',
+    Account_Number: '20018998811',
+    DSL_ID: '02219461925_wifi',
+    Voice_ID: '02246192580',
+    Del_Status: 'Active',
+    Circle_Code: '101',
+    Circle_Name: 'Mumbai',
+    Customer_Name: 'Priya Sharma',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Diamond',
+    Customer_Plan: '999 WiFi_200Mbps'
+  },
+  {
+    Customer_Creation_Date: '15-Jul-2024 17:05:12',
+    Account_Number: '20019045612',
+    DSL_ID: '04019508805_wifi',
+    Voice_ID: '04045088059',
+    Del_Status: 'Active',
+    Circle_Code: '104',
+    Circle_Name: 'Andhra Pradesh',
+    Customer_Name: 'Sunil Reddy',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Gold',
+    Customer_Plan: '799 WiFi_100Mbps'
+  },
+  {
+    Customer_Creation_Date: '18-Jul-2024 08:50:45',
+    Account_Number: '20019123890',
+    DSL_ID: '08019820468_wifi',
+    Voice_ID: '08040982046',
+    Del_Status: 'Active',
+    Circle_Code: '105',
+    Circle_Name: 'Karnataka',
+    Customer_Name: 'Ananya Hegde',
+    Customer_Type: 'B2C Consumer',
+    Customer_Segment: 'Home Platinum',
+    Customer_Plan: '1499 WiFi_300Mbps'
+  }
+];
+
+export const SAMPLE_LOOKUP_ROWS: RawDataRow[] = [
+  { del_number: '1141437857' },
+  { del_number: '1914041570' },
+  { del_number: '6432456074' },
+  { del_number: '91404048555100' },
+  { del_number: '912246731234' },
+  { del_number: '+914045077795ap.ims.airtel.in' },
+  { del_number: '911409820468' },
+  { del_number: '912246192580' },
+  { del_number: '912246192580' }, // Duplicate in input list
+  { del_number: '91404049516888' },
+  { del_number: '911409820031' },
+  { del_number: '+914045088059ap.ims.airtel.in' },
+  { del_number: '914040072507' },
+  { del_number: '912249631143' },
+  { del_number: '918922459935' },
+  { del_number: '918704055440' },
+  { del_number: '918704055436' },
+  { del_number: '08914287871' }, // Andhra Pradesh Voice ID with leading 0
+  { del_number: '8914287871' },  // Same Andhra Pradesh number without leading 0
+  { del_number: '01118463713_wifi' }, // Directly query with DSL ID
+  { del_number: '9999999999' }, // Unmatched test
+  { del_number: '8888888888' }  // Unmatched test
+];

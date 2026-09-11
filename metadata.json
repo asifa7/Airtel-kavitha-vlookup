@@ -1,0 +1,6 @@
+{
+  "name": "Telecom DSL & Voice Lookup Dashboard",
+  "description": "High-performance data matching dashboard for telecom files with phone normalization and DSL ID extraction.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
