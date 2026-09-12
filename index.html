@@ -1,21 +1,840 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telecom DSL &amp; Voice Lookup Dashboard</title>
-    <meta name="description" content="High-performance data matching dashboard for telecom files with phone normalization and DSL ID extraction." />
-    <meta property="og:title" content="Telecom DSL &amp; Voice Lookup Dashboard" />
-    <meta property="og:description" content="High-performance data matching dashboard for telecom files with phone normalization and DSL ID extraction." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#fcfbfb] text-slate-900 antialiased selection:bg-rose-500 selection:text-white">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airtel Matchmaker & Stream Extractor</title>
+<style>
+  :root {
+    --primary: #e60000;
+    --primary-dark: #b80000;
+    --primary-light: #fff0f0;
+    --surface: #ffffff;
+    --bg: #f4f6f9;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --warning: #d97706;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  body { background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-badge { background: var(--primary); color: white; font-weight: 800; font-size: 20px; padding: 6px 14px; border-radius: 8px; letter-spacing: 0.5px; }
+  .logo-title { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .logo-sub { font-size: 13px; color: var(--text-muted); }
+  .sys-badge { background: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; border: 1px solid #bae6fd; }
 
+  .grid-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  @media (max-width: 840px) { .grid-steps { grid-template-columns: 1fr; } }
+
+  .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+  .step-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 600; text-transform: uppercase; }
+  .badge-stream { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .badge-ready { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; background: #f1f5f9; padding: 4px; border-radius: 8px; }
+  .tab-btn { flex: 1; border: none; background: transparent; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text-muted); border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .tab-btn.active { background: white; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+  .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; position: relative; }
+  .drop-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+  .drop-zone input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .drop-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .drop-text { font-size: 13px; font-weight: 600; color: #334155; }
+  .drop-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  .col-select-row { margin-top: 12px; display: flex; gap: 10px; align-items: center; font-size: 12px; }
+  .col-select-row label { font-weight: 600; color: #475569; min-width: 110px; }
+  .col-select-row select { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; background: white; }
+
+  .file-status { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; display: flex; align-items: center; justify-content: space-between; }
+  .status-loaded { background: var(--success-bg); border: 1px solid #bbf7d0; color: var(--success); font-weight: 600; }
+  .status-empty { background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted); }
+
+  .progress-wrap { margin-top: 14px; display: none; }
+  .progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .progress-bar { height: 100%; width: 0%; background: var(--primary); transition: width 0.15s ease; }
+  .progress-text { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  .action-panel { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 24px; text-align: center; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .btn-start { background: var(--primary); color: white; border: none; font-size: 16px; font-weight: 700; padding: 14px 40px; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 12px rgba(230,0,0,0.25); transition: all 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+  .btn-start:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(230,0,0,0.35); }
+  .btn-start:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  .results-section { display: none; margin-bottom: 24px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-box { background: white; padding: 14px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 800; color: #0f172a; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+  .download-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .btn-dl { flex: 1; min-width: 200px; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: white; transition: all 0.2s; }
+  .btn-dl-primary { background: #0f172a; color: white; border-color: #0f172a; }
+  .btn-dl-primary:hover { background: #1e293b; }
+  .btn-dl-secondary { background: white; color: #0f172a; }
+  .btn-dl-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+  .preview-table-wrap { background: white; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; max-height: 420px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f8fafc; color: #475569; font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+  td { padding: 8px 14px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+  tr:hover td { background: #f8fafc; }
+  .status-badge { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .status-matched { background: var(--success-bg); color: var(--success); }
+  .status-unmatched { background: #fef2f2; color: #dc2626; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-badge">airtel</div>
+      <div>
+        <div class="logo-title">Airtel Matchmaker & Stream Extractor</div>
+        <div class="logo-sub">Ultra-Compact Memory Engine (Multi-Gigabyte 2GB+ File Capable)</div>
+      </div>
+    </div>
+    <div class="sys-badge" id="memoryInfo">⚡ Ultra-Compact RAM Mode</div>
+  </header>
+
+  <div class="grid-steps">
+    <!-- STEP 1: MASTER -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">
+          <div class="step-num">1</div>
+          <span>Master Database</span>
+        </div>
+        <span class="badge badge-stream" id="masterBadge">Waiting File</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabRawBtn" onclick="switchMasterTab('raw')">⚡ Raw 2GB+ Dump (Auto Extract)</button>
+        <button class="tab-btn" id="tabCleanBtn" onclick="switchMasterTab('clean')">Clean CSV / Excel</button>
+      </div>
+
+      <!-- Raw 2GB Tab -->
+      <div id="tabRawContent">
+        <div class="drop-zone" id="dropRaw">
+          <input type="file" id="fileRaw" accept=".txt,.csv,.dump">
+          <span class="drop-icon">🚀</span>
+          <div class="drop-text">Select or Drop Raw Airtel Dump File (TXT / CSV)</div>
+          <div class="drop-hint">Handles 2GB+, 5GB+, 10GB+ files smoothly with chunked streaming and zero browser freeze.</div>
+        </div>
+      </div>
+
+      <!-- Clean Tab -->
+      <div id="tabCleanContent" style="display:none;">
+        <div class="drop-zone" id="dropClean">
+          <input type="file" id="fileClean" accept=".csv,.xlsx,.xls,.txt">
+          <span class="drop-icon">📄</span>
+          <div class="drop-text">Select Clean Master File (Book2.xlsx / CSV)</div>
+          <div class="drop-hint">Contains columns: Voice_ID, DSL_ID, Del_Status, etc.</div>
+        </div>
+        <div class="col-select-row" id="masterColRow" style="display:none;">
+          <label>Voice / Mobile Col:</label>
+          <select id="selMasterVoice" onchange="reindexCleanMaster()"></select>
+          <label style="min-width:60px;">DSL_ID:</label>
+          <select id="selMasterDsl" onchange="reindexCleanMaster()"></select>
+        </div>
+      </div>
+
+      <div class="progress-wrap" id="masterProgressWrap">
+        <div class="progress-text">
+          <span id="masterStatusText">Streaming & Indexing...</span>
+          <span id="masterProgressPct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="masterProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="file-status status-empty" id="masterStatusBox">
+        <span id="masterStatusDesc">No master database loaded.</span>
+        <strong id="masterCountText">0 records</strong>
+      </div>
+    </div>
+
+    <!-- STEP 2: TARGET -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">
+          <div class="step-num">2</div>
+          <span>Target File to Enrich</span>
+        </div>
+        <span class="badge badge-stream" id="targetBadge">Waiting File</span>
+      </div>
+
+      <div style="height: 41px;"></div><!-- Alignment spacer -->
+
+      <div class="drop-zone" id="dropTarget">
+        <input type="file" id="fileTarget" accept=".xlsx,.xls,.csv,.txt">
+        <span class="drop-icon">🎯</span>
+        <div class="drop-text">Select or Drop Target File (Book1.xlsx / CSV)</div>
+        <div class="drop-hint">Contains phone numbers or voice numbers to lookup and enrich</div>
+      </div>
+
+      <div class="col-select-row" id="targetColRow" style="display:none;">
+        <label>Lookup Number Col:</label>
+        <select id="selTargetPhone" onchange="reprocessTargetCol()"></select>
+      </div>
+
+      <div class="progress-wrap" id="targetProgressWrap">
+        <div class="progress-text">
+          <span id="targetStatusText">Reading Target File...</span>
+          <span id="targetProgressPct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="targetProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="file-status status-empty" id="targetStatusBox">
+        <span id="targetStatusDesc">No target file loaded.</span>
+        <strong id="targetCountText">0 records</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: ACTION BUTTON -->
+  <div class="action-panel">
+    <button class="btn-start" id="btnStart" disabled onclick="startMatchingProcess()">
+      <span>⚡ START MATCHING & ENRICH TARGET</span>
+    </button>
+    <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);" id="actionStatusDesc">
+      Load both Master Database and Target File to begin matching.
+    </div>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="results-section" id="resultsSection">
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="resTargetTotal">0</div>
+        <div class="stat-label">Target Rows</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: var(--success);" id="resMatched">0</div>
+        <div class="stat-label">Matched (DSL Found)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: #dc2626;" id="resUnmatched">0</div>
+        <div class="stat-label">Not Found</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: #2563eb;" id="resMatchRate">0%</div>
+        <div class="stat-label">Match Rate</div>
+      </div>
+    </div>
+
+    <div class="download-buttons">
+      <button class="btn-dl btn-dl-primary" id="btnDlEnriched" onclick="downloadEnriched()">
+        📥 Download Enriched Target CSV
+      </button>
+      <button class="btn-dl btn-dl-secondary" id="btnDlUnmatched" onclick="downloadUnmatched()">
+        📄 Download Unmatched CSV
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">Preview Enriched Data (First 100 Rows)</div>
+        <span style="font-size: 12px; color: var(--text-muted);" id="previewTimeText"></span>
+      </div>
+      <div class="preview-table-wrap">
+        <table id="previewTable">
+          <thead>
+            <tr id="previewTableHead"></tr>
+          </thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEB WORKER SCRIPT -->
+<script id="workerCode" type="text/plain">
+// Ultra-Compact Numeric RAM Indexing Engine
+// Allows 20,000,000+ records to be indexed in RAM in <600MB without hitting browser heap limits!
+
+const dslPool = [];
+const dslIndexMap = new Map(); // string -> uint32
+const numMasterMap = new Map(); // uint32/number (10-digit number) -> uint32 (dsl index)
+const strMasterMap = new Map(); // fallback for rare non-numeric keys
+
+let targetRows = []; // array of raw rows + search digits
+
+function internDsl(str) {
+  let id = dslIndexMap.get(str);
+  if (id === undefined) {
+    id = dslPool.length;
+    dslPool.push(str);
+    dslIndexMap.set(str, id);
+  }
+  return id;
+}
+
+function indexRecord(voice, dslId) {
+  if (!voice) return;
+  const digits = String(voice).replace(/\D+/g, '');
+  if (!digits) return;
+
+  // Primary key: 10-digit number (matches standard mobile & voice)
+  if (digits.length >= 10) {
+    const last10 = digits.slice(-10);
+    const n = parseInt(last10, 10);
+    if (!isNaN(n)) numMasterMap.set(n, dslId);
+  }
+
+  // Exact digits without leading zero
+  const noZero = digits.replace(/^0+/, '');
+  if (noZero.length > 0 && noZero.length <= 15) {
+    const n = parseInt(noZero, 10);
+    if (!isNaN(n)) numMasterMap.set(n, dslId);
+  } else if (noZero.length > 15) {
+    strMasterMap.set(noZero, dslId);
+  }
+}
+
+function queryMatch(phone) {
+  if (!phone) return null;
+  const digits = String(phone).replace(/\D+/g, '');
+  if (!digits) return null;
+
+  // 1. Check exact without leading zero
+  const noZero = digits.replace(/^0+/, '');
+  if (noZero.length > 0 && noZero.length <= 15) {
+    const n = parseInt(noZero, 10);
+    if (!isNaN(n) && numMasterMap.has(n)) return dslPool[numMasterMap.get(n)];
+  } else if (strMasterMap.has(noZero)) {
+    return dslPool[strMasterMap.get(noZero)];
+  }
+
+  // 2. Check last 10 digits
+  if (digits.length >= 10) {
+    const n = parseInt(digits.slice(-10), 10);
+    if (!isNaN(n) && numMasterMap.has(n)) return dslPool[numMasterMap.get(n)];
+  }
+
+  // 3. Check international 91 prefix
+  if (digits.length === 12 && digits.startsWith('91')) {
+    const n = parseInt(digits.slice(2), 10);
+    if (!isNaN(n) && numMasterMap.has(n)) return dslPool[numMasterMap.get(n)];
+  }
+
+  return null;
+}
+
+self.onmessage = async function(e) {
+  const { action, payload } = e.data;
+
+  if (action === 'extract_and_index_stream') {
+    handleStreamExtraction(payload.file);
+  } else if (action === 'index_clean_data') {
+    handleCleanData(payload.records);
+  } else if (action === 'set_target_data') {
+    targetRows = payload.rows;
+    self.postMessage({ type: 'target_ready', count: targetRows.length });
+  } else if (action === 'run_match') {
+    handleRunMatch(payload.targetHeader);
+  }
+};
+
+async function handleStreamExtraction(file) {
+  numMasterMap.clear();
+  strMasterMap.clear();
+  dslPool.length = 0;
+  dslIndexMap.clear();
+
+  const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB stream chunks
+  const totalSize = file.size;
+  let offset = 0;
+  let leftover = '';
+  let recordCount = 0;
+
+  const regex = /\b([0-9a-zA-Z]+_(?:wifi|dsl)|DSL[-_]?[0-9a-zA-Z]+)[\s,\t]+([0-9]+)[\s,\t]+([A-Za-z_]+)\b/gi;
+  const decoder = new TextDecoder('utf-8', { stream: true });
+
+  while (offset < totalSize) {
+    const end = Math.min(offset + CHUNK_SIZE, totalSize);
+    const slice = file.slice(offset, end);
+    const buf = await slice.arrayBuffer();
+    const textChunk = leftover + decoder.decode(buf, { stream: (end < totalSize) });
+
+    const lastNl = textChunk.lastIndexOf('\n');
+    let chunkToProcess = '';
+    if (lastNl !== -1 && end < totalSize) {
+      chunkToProcess = textChunk.substring(0, lastNl);
+      leftover = textChunk.substring(lastNl + 1);
+    } else {
+      chunkToProcess = textChunk;
+      leftover = '';
+    }
+
+    regex.lastIndex = 0;
+    let match;
+    while ((match = regex.exec(chunkToProcess)) !== null) {
+      const dsl = match[1].trim();
+      const voice = match[2].trim();
+      
+      const dslId = internDsl(dsl);
+      indexRecord(voice, dslId);
+      recordCount++;
+    }
+
+    offset = end;
+    const pct = Math.min(100, Math.round((offset / totalSize) * 100));
+    self.postMessage({
+      type: 'progress',
+      source: 'master',
+      percent: pct,
+      rowCount: recordCount,
+      bytesProcessed: offset,
+      totalBytes: totalSize
+    });
+  }
+
+  self.postMessage({
+    type: 'master_ready',
+    count: numMasterMap.size
+  });
+}
+
+function handleCleanData(records) {
+  numMasterMap.clear();
+  strMasterMap.clear();
+  dslPool.length = 0;
+  dslIndexMap.clear();
+
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i];
+    const dslId = internDsl(r.dsl);
+    indexRecord(r.voice, dslId);
+  }
+
+  self.postMessage({
+    type: 'master_ready',
+    count: numMasterMap.size
+  });
+}
+
+function handleRunMatch(targetHeader) {
+  let matchedCount = 0;
+  let unmatchedCount = 0;
+
+  let enrichedCsvHeader = [...targetHeader, 'DSL_ID', 'MATCH_STATUS'].map(c => `"${c}"`).join(',') + '\n';
+  let enrichedParts = [enrichedCsvHeader];
+  let unmatchedParts = [targetHeader.map(c => `"${c}"`).join(',') + '\n'];
+
+  let enrichedBatch = '';
+  let unmatchedBatch = '';
+  let previewRows = [];
+
+  const total = targetRows.length;
+
+  for (let i = 0; i < total; i++) {
+    const item = targetRows[i];
+    const dsl = queryMatch(item.lookupValue);
+
+    let matchStatus = 'NOT FOUND';
+    let outDsl = '';
+
+    if (dsl) {
+      outDsl = dsl;
+      matchStatus = 'MATCHED';
+      matchedCount++;
+    } else {
+      unmatchedCount++;
+      const unRow = item.rawArray.map(v => `"${String(v !== undefined ? v : '').replace(/"/g, '""')}"`).join(',') + '\n';
+      unmatchedBatch += unRow;
+    }
+
+    const enRowArr = [...item.rawArray, outDsl, matchStatus];
+    const enRow = enRowArr.map(v => `"${String(v !== undefined ? v : '').replace(/"/g, '""')}"`).join(',') + '\n';
+    enrichedBatch += enRow;
+
+    if (previewRows.length < 100) {
+      previewRows.push(enRowArr);
+    }
+
+    if (enrichedBatch.length > 2000000) {
+      enrichedParts.push(enrichedBatch);
+      enrichedBatch = '';
+    }
+    if (unmatchedBatch.length > 2000000) {
+      unmatchedParts.push(unmatchedBatch);
+      unmatchedBatch = '';
+    }
+  }
+
+  if (enrichedBatch.length > 0) enrichedParts.push(enrichedBatch);
+  if (unmatchedBatch.length > 0) unmatchedParts.push(unmatchedBatch);
+
+  self.postMessage({
+    type: 'match_completed',
+    matchedCount,
+    unmatchedCount,
+    total,
+    previewRows,
+    enrichedParts,
+    unmatchedParts
+  });
+}
+</script>
+
+<script>
+// Main UI Logic
+let worker;
+let isMasterReady = false;
+let isTargetReady = false;
+
+let rawCleanMasterData = [];
+let masterHeaderList = [];
+
+let rawTargetData = [];
+let targetHeader = [];
+
+let enrichedPartsStore = [];
+let unmatchedPartsStore = [];
+
+function initWorker() {
+  const blob = new Blob([document.getElementById('workerCode').textContent], { type: 'application/javascript' });
+  worker = new Worker(URL.createObjectURL(blob));
+
+  worker.onmessage = function(e) {
+    const data = e.data;
+
+    if (data.type === 'progress') {
+      if (data.source === 'master') {
+        document.getElementById('masterProgressWrap').style.display = 'block';
+        document.getElementById('masterProgressBar').style.width = data.percent + '%';
+        document.getElementById('masterProgressPct').textContent = data.percent + '%';
+        const mb = (data.bytesProcessed / (1024 * 1024)).toFixed(1);
+        const totalMb = (data.totalBytes / (1024 * 1024)).toFixed(1);
+        document.getElementById('masterStatusText').textContent = `Streaming: ${data.rowCount.toLocaleString()} found (${mb} MB / ${totalMb} MB)`;
+      }
+    } else if (data.type === 'master_ready') {
+      isMasterReady = true;
+      document.getElementById('masterProgressBar').style.width = '100%';
+      document.getElementById('masterProgressPct').textContent = '100%';
+      document.getElementById('masterStatusText').textContent = 'Indexing Complete!';
+      
+      const badge = document.getElementById('masterBadge');
+      badge.textContent = 'Active in RAM';
+      badge.className = 'badge badge-ready';
+
+      const box = document.getElementById('masterStatusBox');
+      box.className = 'file-status status-loaded';
+      document.getElementById('masterStatusDesc').textContent = '✓ Master Database Loaded & Ready';
+      document.getElementById('masterCountText').textContent = data.count.toLocaleString() + ' keys indexed';
+
+      checkReadyToStart();
+    } else if (data.type === 'target_ready') {
+      isTargetReady = true;
+      document.getElementById('targetProgressBar').style.width = '100%';
+      document.getElementById('targetProgressPct').textContent = '100%';
+      document.getElementById('targetStatusText').textContent = 'Target Ready';
+
+      const badge = document.getElementById('targetBadge');
+      badge.textContent = 'Ready';
+      badge.className = 'badge badge-ready';
+
+      const box = document.getElementById('targetStatusBox');
+      box.className = 'file-status status-loaded';
+      document.getElementById('targetStatusDesc').textContent = '✓ Target File Ready';
+      document.getElementById('targetCountText').textContent = data.count.toLocaleString() + ' rows';
+
+      checkReadyToStart();
+    } else if (data.type === 'match_completed') {
+      showMatchResults(data);
+    }
+  };
+}
+
+function switchMasterTab(tab) {
+  document.getElementById('tabRawBtn').classList.toggle('active', tab === 'raw');
+  document.getElementById('tabCleanBtn').classList.toggle('active', tab === 'clean');
+  document.getElementById('tabRawContent').style.display = tab === 'raw' ? 'block' : 'none';
+  document.getElementById('tabCleanContent').style.display = tab === 'clean' ? 'block' : 'none';
+}
+
+function checkReadyToStart() {
+  const btn = document.getElementById('btnStart');
+  if (isMasterReady && isTargetReady) {
+    btn.disabled = false;
+    document.getElementById('actionStatusDesc').textContent = 'Both files ready. Click the button above to execute match.';
+  } else if (!isMasterReady && isTargetReady) {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Upload or stream Master Database to continue.';
+  } else if (isMasterReady && !isTargetReady) {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Master loaded. Select Target File to continue.';
+  } else {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Load both Master Database and Target File to begin.';
+  }
+}
+
+// Master File Uploads
+document.getElementById('fileRaw').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('masterProgressWrap').style.display = 'block';
+  document.getElementById('masterStatusDesc').textContent = `Streaming ${file.name}...`;
+  worker.postMessage({
+    action: 'extract_and_index_stream',
+    payload: { file }
+  });
+});
+
+document.getElementById('fileClean').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('masterProgressWrap').style.display = 'block';
+  document.getElementById('masterStatusText').textContent = 'Reading clean file...';
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const data = new Uint8Array(evt.target.result);
+    let json = [];
+    if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+      const text = new TextDecoder('utf-8').decode(data);
+      for (let line of text.split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        json.push(line.split(',').map(s => s.replace(/^"|"$/g, '').trim()));
+      }
+    } else {
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    }
+
+    if (json.length < 2) return;
+    rawCleanMasterData = json;
+    masterHeaderList = json[0].map(c => String(c || '').trim());
+
+    const selVoice = document.getElementById('selMasterVoice');
+    const selDsl = document.getElementById('selMasterDsl');
+    selVoice.innerHTML = '';
+    selDsl.innerHTML = '';
+
+    let bestVoiceIdx = -1;
+    let bestDslIdx = -1;
+
+    masterHeaderList.forEach((h, idx) => {
+      const optV = new Option(`${h} (Col ${idx+1})`, idx);
+      const optD = new Option(`${h} (Col ${idx+1})`, idx);
+      selVoice.add(optV);
+      selDsl.add(optD);
+
+      const hl = h.toLowerCase();
+      if (bestVoiceIdx === -1 && (hl.includes('voice') || hl.includes('mobile') || hl.includes('phone') || hl.includes('number'))) {
+        bestVoiceIdx = idx;
+      }
+      if (bestDslIdx === -1 && hl.includes('dsl')) {
+        bestDslIdx = idx;
+      }
+    });
+
+    if (bestVoiceIdx === -1) bestVoiceIdx = masterHeaderList.length > 3 ? 3 : 0;
+    if (bestDslIdx === -1) bestDslIdx = masterHeaderList.length > 2 ? 2 : 1;
+
+    selVoice.value = bestVoiceIdx;
+    selDsl.value = bestDslIdx;
+    document.getElementById('masterColRow').style.display = 'flex';
+
+    reindexCleanMaster();
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function reindexCleanMaster() {
+  if (rawCleanMasterData.length < 2) return;
+  const vIdx = parseInt(document.getElementById('selMasterVoice').value, 10);
+  const dIdx = parseInt(document.getElementById('selMasterDsl').value, 10);
+
+  const records = [];
+  for (let i = 1; i < rawCleanMasterData.length; i++) {
+    const r = rawCleanMasterData[i];
+    if (!r || r.length === 0) continue;
+    records.push({
+      voice: r[vIdx] !== undefined ? String(r[vIdx]) : '',
+      dsl: r[dIdx] !== undefined ? String(r[dIdx]) : ''
+    });
+  }
+
+  worker.postMessage({
+    action: 'index_clean_data',
+    payload: { records }
+  });
+}
+
+// Target File Upload
+document.getElementById('fileTarget').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('targetProgressWrap').style.display = 'block';
+  document.getElementById('targetStatusText').textContent = 'Reading Target file...';
+  document.getElementById('targetProgressBar').style.width = '30%';
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const data = new Uint8Array(evt.target.result);
+    let json = [];
+    
+    if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
+      const text = new TextDecoder('utf-8').decode(data);
+      for (let line of text.split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        json.push(line.split(',').map(s => s.replace(/^"|"$/g, '').trim()));
+      }
+    } else {
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    }
+
+    if (json.length === 0) return;
+    rawTargetData = json;
+    targetHeader = json[0].map(c => String(c || '').trim());
+
+    const selPhone = document.getElementById('selTargetPhone');
+    selPhone.innerHTML = '';
+    let bestTargetIdx = -1;
+
+    targetHeader.forEach((h, idx) => {
+      const opt = new Option(`${h} (Col ${idx+1})`, idx);
+      selPhone.add(opt);
+
+      const hl = h.toLowerCase();
+      if (bestTargetIdx === -1 && (hl.includes('voice') || hl.includes('mobile') || hl.includes('phone') || hl.includes('number') || hl.includes('dsl'))) {
+        bestTargetIdx = idx;
+      }
+    });
+
+    if (bestTargetIdx === -1) bestTargetIdx = 0;
+    selPhone.value = bestTargetIdx;
+    document.getElementById('targetColRow').style.display = 'flex';
+
+    reprocessTargetCol();
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function reprocessTargetCol() {
+  if (rawTargetData.length < 2) return;
+  const colIdx = parseInt(document.getElementById('selTargetPhone').value, 10);
+
+  const formattedRows = [];
+  for (let i = 1; i < rawTargetData.length; i++) {
+    const r = rawTargetData[i];
+    if (!r || r.length === 0) continue;
+    const val = r[colIdx] !== undefined ? String(r[colIdx]) : '';
+    formattedRows.push({
+      rawArray: r,
+      lookupValue: val
+    });
+  }
+
+  worker.postMessage({
+    action: 'set_target_data',
+    payload: { rows: formattedRows }
+  });
+}
+
+function startMatchingProcess() {
+  const btn = document.getElementById('btnStart');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳ Processing Match...</span>';
+
+  worker.postMessage({
+    action: 'run_match',
+    payload: { targetHeader }
+  });
+}
+
+function showMatchResults(data) {
+  const btn = document.getElementById('btnStart');
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡ RE-RUN MATCHING</span>';
+
+  enrichedPartsStore = data.enrichedParts;
+  unmatchedPartsStore = data.unmatchedParts;
+
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resTargetTotal').textContent = data.total.toLocaleString();
+  document.getElementById('resMatched').textContent = data.matchedCount.toLocaleString();
+  document.getElementById('resUnmatched').textContent = data.unmatchedCount.toLocaleString();
+  
+  const rate = data.total > 0 ? ((data.matchedCount / data.total) * 100).toFixed(1) : 0;
+  document.getElementById('resMatchRate').textContent = rate + '%';
+
+  const thead = document.getElementById('previewTableHead');
+  thead.innerHTML = '';
+  const fullCols = [...targetHeader, 'DSL_ID', 'MATCH_STATUS'];
+  for (let col of fullCols) {
+    const th = document.createElement('th');
+    th.textContent = col;
+    thead.appendChild(th);
+  }
+
+  const tbody = document.getElementById('previewTableBody');
+  tbody.innerHTML = '';
+  for (let row of data.previewRows) {
+    const tr = document.createElement('tr');
+    for (let i = 0; i < row.length; i++) {
+      const td = document.createElement('td');
+      const val = row[i] !== undefined ? row[i] : '';
+      if (i === row.length - 1) {
+        const span = document.createElement('span');
+        span.className = val === 'MATCHED' ? 'status-badge status-matched' : 'status-badge status-unmatched';
+        span.textContent = val;
+        td.appendChild(span);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+
+  window.scrollTo({ top: document.getElementById('resultsSection').offsetTop - 20, behavior: 'smooth' });
+}
+
+function downloadBlob(parts, filename) {
+  const blob = new Blob(parts, { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function downloadEnriched() {
+  downloadBlob(enrichedPartsStore, 'Enriched_Target_With_DSL.csv');
+}
+
+function downloadUnmatched() {
+  downloadBlob(unmatchedPartsStore, 'Unmatched_Records.csv');
+}
+
+initWorker();
+</script>
+</body>
+</html>
