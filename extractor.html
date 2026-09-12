@@ -1,0 +1,831 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airtel DSL_ID, Voice_ID & Status Extractor (2GB+ Stream Engine)</title>
+  <style>
+    :root {
+      --airtel-red: #E40000;
+      --airtel-dark-red: #B80000;
+      --airtel-light-red: #FFF1F1;
+      --bg-gray: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --success-green: #16A34A;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-gray);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, var(--airtel-red), var(--airtel-dark-red));
+      color: #fff;
+      padding: 22px 36px;
+      box-shadow: 0 4px 15px rgba(228, 0, 0, 0.25);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo-area h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      background: #fff;
+      color: var(--airtel-red);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .logo-area p {
+      font-size: 13.5px;
+      color: #FFEAEA;
+      margin-top: 4px;
+    }
+
+    .mode-tag {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 600;
+      backdrop-filter: blur(5px);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 25px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    /* Drop Zone */
+    .dropzone {
+      border: 2px dashed #CBD5E1;
+      border-radius: 10px;
+      background: #FAFBFD;
+      padding: 38px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--airtel-red);
+      background: var(--airtel-light-red);
+    }
+
+    .dropzone-icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 12px;
+      color: var(--airtel-red);
+    }
+
+    .dropzone h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .dropzone p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    /* Selected File Info */
+    .file-info-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: #F1F5F9;
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-top: 14px;
+    }
+
+    .file-name-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .file-size-badge {
+      background: #E2E8F0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Controls */
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--airtel-red);
+      color: #fff;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--airtel-dark-red);
+      box-shadow: 0 4px 12px rgba(228, 0, 0, 0.3);
+    }
+
+    .btn-success {
+      background: var(--success-green);
+      color: #fff;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: #15803D;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+    }
+
+    .btn-secondary {
+      background: #E2E8F0;
+      color: var(--text-main);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #CBD5E1;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Progress Area */
+    .progress-section {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-container {
+      height: 14px;
+      background: #E2E8F0;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--airtel-red), #FF4D4D);
+      border-radius: 7px;
+      transition: width 0.15s ease;
+    }
+
+    /* Metric Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stat-card.red .stat-value { color: var(--airtel-red); }
+    .stat-card.green .stat-value { color: var(--success-green); }
+    .stat-card.blue .stat-value { color: #2563EB; }
+
+    /* Preview Table */
+    .table-container {
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-top: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+
+    th {
+      background: #F8FAFC;
+      color: #475569;
+      font-weight: 700;
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      border-bottom: 2px solid var(--border-color);
+      z-index: 10;
+    }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #F1F5F9;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    tr:hover td {
+      background: #F8FAFC;
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-active {
+      background: #DCFCE7;
+      color: #166534;
+    }
+
+    .status-suspended {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+
+    .status-other {
+      background: #F1F5F9;
+      color: #475569;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="logo-area">
+        <h1>
+          <span>airtel</span> Fast Data Extractor
+          <span class="logo-badge">Ultra 2GB+</span>
+        </h1>
+        <p>Extract DSL_ID, Voice_ID, and Del_Status directly from raw multi-gigabyte Airtel text dumps into clean CSV</p>
+      </div>
+      <div class="mode-tag">
+        ⚡ 64-Bit Streaming Engine (Zero Browser Crash)
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Upload Card -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        Upload Raw Airtel Text File (.txt, .csv, WhatsApp Dumps)
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <svg class="dropzone-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h3>Click to browse or Drag & Drop your Airtel text file here</h3>
+        <p>Handles files of 2 GB, 5 GB, 10 GB+ effortlessly using background streaming chunking</p>
+        <input type="file" id="fileInput" class="file-input" accept=".txt,.csv,.tsv,*">
+      </div>
+
+      <div class="file-info-bar" id="fileInfoBar">
+        <div class="file-name-group">
+          <svg width="22" height="22" fill="none" stroke="var(--airtel-red)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span id="fileNameDisplay">file.txt</span>
+          <span class="file-size-badge" id="fileSizeDisplay">0 MB</span>
+        </div>
+        <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="resetFile()">Change File</button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="control-row">
+        <div style="font-size: 13px; color: var(--text-muted);">
+          Extracts: <strong style="color: var(--text-main);">DSL_ID, Voice_ID, Del_Status</strong> into clean CSV
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btnStart" disabled onclick="startProcessing()">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+            START EXTRACTION
+          </button>
+          <button class="btn btn-secondary" id="btnCancel" style="display:none;" onclick="cancelProcessing()">
+            Cancel
+          </button>
+          <button class="btn btn-success" id="btnDownload" disabled onclick="downloadCSV()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            DOWNLOAD CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-section" id="progressSection">
+        <div class="progress-header">
+          <span id="progressText">Processing: 0 MB / 0 MB (0%)</span>
+          <span id="progressSpeed">0 lines/sec</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Metrics Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">File Size</span>
+        <span class="stat-value" id="statFileSize">0 MB</span>
+      </div>
+      <div class="stat-card blue">
+        <span class="stat-label">Lines Scanned</span>
+        <span class="stat-value" id="statLinesScanned">0</span>
+      </div>
+      <div class="stat-card red">
+        <span class="stat-label">Extracted Records</span>
+        <span class="stat-value" id="statExtracted">0</span>
+      </div>
+      <div class="stat-card green">
+        <span class="stat-label">Processing Speed</span>
+        <span class="stat-value" id="statSpeed">0 /s</span>
+      </div>
+    </div>
+
+    <!-- Preview Table Card -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        Extracted Data Live Preview (First 100 Rows)
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>DSL_ID</th>
+              <th>Voice_ID</th>
+              <th>Del_Status</th>
+            </tr>
+          </thead>
+          <tbody id="previewTbody">
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px; font-family: var(--font-family);">
+                No file processed yet. Select your Airtel text file above to see extracted rows.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Airtel High-Speed Stream Extractor &bull; Single-File HTML Engine &bull; Memory-Safe for 2GB+ Dumps
+  </footer>
+
+  <script>
+    let selectedFile = null;
+    let worker = null;
+    let blobParts = [];
+    let previewRows = [];
+    let startTime = 0;
+    let isFinished = false;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfoBar = document.getElementById('fileInfoBar');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const fileSizeDisplay = document.getElementById('fileSizeDisplay');
+    const btnStart = document.getElementById('btnStart');
+    const btnCancel = document.getElementById('btnCancel');
+    const btnDownload = document.getElementById('btnDownload');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressSpeed = document.getElementById('progressSpeed');
+
+    const statFileSize = document.getElementById('statFileSize');
+    const statLinesScanned = document.getElementById('statLinesScanned');
+    const statExtracted = document.getElementById('statExtracted');
+    const statSpeed = document.getElementById('statSpeed');
+    const previewTbody = document.getElementById('previewTbody');
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function handleFileSelect(file) {
+      selectedFile = file;
+      fileNameDisplay.textContent = file.name;
+      fileSizeDisplay.textContent = formatBytes(file.size);
+      statFileSize.textContent = formatBytes(file.size);
+
+      dropzone.style.display = 'none';
+      fileInfoBar.style.display = 'flex';
+      btnStart.disabled = false;
+      btnDownload.disabled = true;
+
+      statLinesScanned.textContent = '0';
+      statExtracted.textContent = '0';
+      statSpeed.textContent = '0 /s';
+      previewRows = [];
+      previewTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px; font-family: var(--font-family);">Ready. Click 'START EXTRACTION' to extract DSL_ID, Voice_ID, and Del_Status.</td></tr>`;
+    }
+
+    function resetFile() {
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+      selectedFile = null;
+      dropzone.style.display = 'block';
+      fileInfoBar.style.display = 'none';
+      btnStart.disabled = true;
+      btnStart.style.display = 'inline-flex';
+      btnCancel.style.display = 'none';
+      btnDownload.disabled = true;
+      progressSection.style.display = 'none';
+      fileInput.value = '';
+    }
+
+    // Inlined Web Worker Code for zero RAM crash on 2GB+ files
+    const workerScript = `
+      self.onmessage = async function(e) {
+        const file = e.data.file;
+        const chunkSize = 8 * 1024 * 1024; // 8MB stream chunks
+        const totalSize = file.size;
+        let offset = 0;
+        let remainder = "";
+        let totalLines = 0;
+        let totalExtracted = 0;
+        let preview = [];
+        let startTime = Date.now();
+        let lastReportTime = startTime;
+
+        let outChunk = "DSL_ID,Voice_ID,Del_Status\\r\\n";
+
+        // Regex that precisely matches DSL_ID, Voice_ID, and Del_Status
+        const regex = /\\b([0-9a-zA-Z]+_(?:wifi|dsl)|DSL[-_]?[0-9a-zA-Z]+)[\\s,\\t]+([0-9]+)[\\s,\\t]+([A-Za-z_]+)\\b/i;
+        const decoder = new TextDecoder("utf-8");
+
+        while (offset < totalSize) {
+          const slice = file.slice(offset, offset + chunkSize);
+          const buffer = await slice.arrayBuffer();
+          offset += slice.size;
+
+          const text = remainder + decoder.decode(buffer, { stream: (offset < totalSize) });
+          const lastNewline = text.lastIndexOf('\\n');
+
+          let processText = "";
+          if (lastNewline !== -1) {
+            processText = text.substring(0, lastNewline);
+            remainder = text.substring(lastNewline + 1);
+          } else {
+            remainder = text;
+            continue;
+          }
+
+          const lines = processText.split(/\\r?\\n/);
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line) continue;
+            totalLines++;
+
+            if (line.indexOf("Customer_Creation_Date") !== -1 || line.indexOf("Account_Number") !== -1) {
+              continue;
+            }
+
+            const m = line.match(regex);
+            if (m) {
+              totalExtracted++;
+              const dslId = m[1];
+              const voiceId = m[2];
+              const delStatus = m[3];
+
+              outChunk += dslId + "," + voiceId + "," + delStatus + "\\r\\n";
+
+              if (preview.length < 100) {
+                preview.push([totalExtracted, dslId, voiceId, delStatus]);
+              }
+            }
+          }
+
+          if (outChunk.length > 2 * 1024 * 1024) {
+            self.postMessage({ type: 'chunk', chunkText: outChunk });
+            outChunk = "";
+          }
+
+          const now = Date.now();
+          if (now - lastReportTime > 200 || offset >= totalSize) {
+            const elapsed = (now - startTime) / 1000;
+            const speed = Math.round(totalLines / Math.max(0.01, elapsed));
+            const pct = Math.min(100, Math.round((offset / totalSize) * 100));
+
+            self.postMessage({
+              type: 'progress',
+              offset: offset,
+              totalSize: totalSize,
+              percent: pct,
+              totalLines: totalLines,
+              totalExtracted: totalExtracted,
+              speed: speed,
+              preview: preview
+            });
+            lastReportTime = now;
+          }
+        }
+
+        if (remainder && remainder.trim()) {
+          totalLines++;
+          const m = remainder.match(regex);
+          if (m) {
+            totalExtracted++;
+            outChunk += m[1] + "," + m[2] + "," + m[3] + "\\r\\n";
+            if (preview.length < 100) {
+              preview.push([totalExtracted, m[1], m[2], m[3]]);
+            }
+          }
+        }
+
+        if (outChunk.length > 0) {
+          self.postMessage({ type: 'chunk', chunkText: outChunk });
+        }
+
+        self.postMessage({
+          type: 'complete',
+          totalLines: totalLines,
+          totalExtracted: totalExtracted,
+          preview: preview
+        });
+      };
+    `;
+
+    function startProcessing() {
+      if (!selectedFile) return;
+
+      btnStart.style.display = 'none';
+      btnCancel.style.display = 'inline-flex';
+      btnDownload.disabled = true;
+      progressSection.style.display = 'block';
+
+      blobParts = [];
+      previewRows = [];
+      startTime = Date.now();
+      isFinished = false;
+
+      const blob = new Blob([workerScript], { type: 'application/javascript' });
+      worker = new Worker(URL.createObjectURL(blob));
+
+      worker.onmessage = function(e) {
+        const data = e.data;
+
+        if (data.type === 'chunk') {
+          blobParts.push(data.chunkText);
+        } else if (data.type === 'progress') {
+          progressBar.style.width = data.percent + '%';
+          progressText.textContent = `Processing: ${formatBytes(data.offset)} / ${formatBytes(data.totalSize)} (${data.percent}%)`;
+          progressSpeed.textContent = `${data.speed.toLocaleString()} lines/sec`;
+
+          statLinesScanned.textContent = data.totalLines.toLocaleString();
+          statExtracted.textContent = data.totalExtracted.toLocaleString();
+          statSpeed.textContent = data.speed.toLocaleString() + ' /s';
+
+          if (data.preview && data.preview.length > previewRows.length) {
+            previewRows = data.preview;
+            renderPreview(previewRows);
+          }
+        } else if (data.type === 'complete') {
+          isFinished = true;
+          progressBar.style.width = '100%';
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          progressText.textContent = `Completed 100% in ${elapsed}s! Extracted ${data.totalExtracted.toLocaleString()} rows.`;
+          progressSpeed.textContent = `Done`;
+
+          statLinesScanned.textContent = data.totalLines.toLocaleString();
+          statExtracted.textContent = data.totalExtracted.toLocaleString();
+
+          btnStart.style.display = 'inline-flex';
+          btnCancel.style.display = 'none';
+          btnDownload.disabled = false;
+
+          renderPreview(data.preview);
+          alert(`Extraction Complete!\n\nExtracted: ${data.totalExtracted.toLocaleString()} valid records\nTime: ${elapsed}s\n\nClick 'DOWNLOAD CSV' to save your file.`);
+        }
+      };
+
+      worker.postMessage({ file: selectedFile });
+    }
+
+    function cancelProcessing() {
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+      btnStart.style.display = 'inline-flex';
+      btnCancel.style.display = 'none';
+      progressText.textContent = "Extraction stopped by user.";
+      progressSpeed.textContent = "";
+    }
+
+    function renderPreview(rows) {
+      if (!rows || rows.length === 0) return;
+      let html = '';
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        let statusClass = 'status-other';
+        const st = (r[3] || '').toLowerCase();
+        if (st === 'active') statusClass = 'status-active';
+        else if (st === 'suspended') statusClass = 'status-suspended';
+
+        html += `
+          <tr>
+            <td style="color: var(--text-muted);">${r[0]}</td>
+            <td style="font-weight: 700; color: var(--airtel-red);">${r[1]}</td>
+            <td style="font-weight: 600;">${r[2]}</td>
+            <td><span class="badge-status ${statusClass}">${r[3]}</span></td>
+          </tr>
+        `;
+      }
+      previewTbody.innerHTML = html;
+    }
+
+    function downloadCSV() {
+      if (blobParts.length === 0) return;
+
+      const finalBlob = new Blob(blobParts, { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(finalBlob);
+      const a = document.createElement('a');
+      const baseName = selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, "") : "airtel_extracted";
+      a.href = url;
+      a.download = baseName + "_DSL_Voice_Status.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
+  </script>
+</body>
+</html>
