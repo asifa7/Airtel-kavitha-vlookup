@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airtel Matchmaker - DSL ID Lookup (Memory-Safe Engine)</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    if (!window.XLSX) {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+  <style>
+    :root {
+      --airtel-red:#E40000; --airtel-red-dark:#b80000; --airtel-red-light:#fff0f0; --airtel-red-border:#fecaca;
+      --bg-light:#f4f6f9; --card-bg:#fff; --text-main:#1e293b; --text-secondary:#64748b; --text-muted:#94a3b8;
+      --border-color:#e2e8f0; --success:#10b981; --success-bg:#ecfdf5; --warning:#f59e0b; --warning-bg:#fffbeb;
+      --danger:#ef4444; --danger-bg:#fef2f2; --radius-sm:6px; --radius-md:10px; --radius-lg:16px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.05); --shadow-md:0 4px 8px -1px rgba(0,0,0,.08),0 2px 4px -2px rgba(0,0,0,.05);
+      --font:'Segoe UI',system-ui,-apple-system,Roboto,Arial,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:var(--bg-light);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column}
+    .navbar{background:#fff;border-bottom:2px solid var(--airtel-red);padding:.85rem 2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:50}
+    .brand-group{display:flex;align-items:center;gap:12px}
+    .brand-logo{width:38px;height:38px;background:linear-gradient(135deg,#E40000,#9b0000);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:20px;box-shadow:0 2px 5px rgba(228,0,0,.35)}
+    .brand-text h1{font-size:1.2rem;font-weight:800;color:var(--airtel-red);display:flex;align-items:center;gap:8px}
+    .brand-badge{font-size:.65rem;text-transform:uppercase;background:var(--airtel-red-light);color:var(--airtel-red);padding:2px 8px;border-radius:9999px;font-weight:700;border:1px solid var(--airtel-red-border)}
+    .brand-text p{font-size:.8rem;color:var(--text-secondary)}
+    .nav-status{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-secondary);background:var(--bg-light);padding:6px 14px;border-radius:9999px;border:1px solid var(--border-color)}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.85)}}
+    .container{max-width:1200px;width:100%;margin:1.5rem auto;padding:0 1.25rem;flex:1}
+    .info-banner{background:linear-gradient(to right,#fff,var(--airtel-red-light));border-left:4px solid var(--airtel-red);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);border-left:4px solid var(--airtel-red)}
+    .info-banner svg{color:var(--airtel-red);flex-shrink:0;margin-top:2px}
+    .info-banner-content h4{font-size:.95rem;font-weight:700;margin-bottom:2px}
+    .info-banner-content p{font-size:.85rem;color:var(--text-secondary)}
+    .info-banner-content .tags{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+    .tag{font-size:.75rem;background:#fff;padding:2px 8px;border-radius:4px;border:1px solid var(--border-color);font-family:monospace;color:var(--text-secondary)}
+    .cards-grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem;margin-bottom:1.5rem}
+    .card{background:var(--card-bg);border-radius:var(--radius-md);border:1px solid var(--border-color);box-shadow:var(--shadow-sm);padding:1.5rem}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border-color)}
+    .card-title{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:8px}
+    .card-title .step-num{width:24px;height:24px;background:var(--airtel-red);color:#fff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+    .dropzone{border:2px dashed var(--border-color);border-radius:var(--radius-sm);padding:1.75rem 1rem;text-align:center;cursor:pointer;background:#fafbfc;transition:.2s;position:relative}
+    .dropzone:hover,.dropzone.dragover{border-color:var(--airtel-red);background:var(--airtel-red-light)}
+    .dropzone input[type=file]{position:absolute;width:100%;height:100%;top:0;left:0;opacity:0;cursor:pointer}
+    .dropzone-icon{margin-bottom:.5rem;color:var(--airtel-red)}
+    .dropzone-title{font-size:.95rem;font-weight:600;margin-bottom:.25rem}
+    .dropzone-desc{font-size:.8rem;color:var(--text-secondary)}
+    .file-meta-box{margin-top:.75rem;padding:.75rem .95rem;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-sm);display:none;align-items:center;justify-content:space-between;font-size:.85rem}
+    .file-meta-info{display:flex;align-items:center;gap:10px;overflow:hidden}
+    .file-meta-name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .file-meta-size{color:var(--text-muted);font-size:.75rem}
+    .file-conversion-tag{font-size:.7rem;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:600;margin-top:2px;display:inline-block}
+    .btn-remove-file{background:transparent;border:none;color:var(--danger);cursor:pointer;font-weight:600;padding:4px 8px;border-radius:4px;font-size:.85rem}
+    .btn-remove-file:hover{background:var(--danger-bg)}
+    .field-group{margin-top:1rem}
+    .field-label{font-size:.82rem;font-weight:600;color:var(--text-secondary);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center}
+    .field-label span.auto-badge{font-size:.7rem;color:var(--success);background:var(--success-bg);padding:1px 6px;border-radius:4px;font-weight:600}
+    select,input[type=text],input[type=number]{width:100%;padding:.65rem .75rem;border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:.9rem;background:#fff;outline:none}
+    select:focus,input:focus{border-color:var(--airtel-red);box-shadow:0 0 0 3px rgba(228,0,0,.15)}
+    .action-panel{background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1.25rem 1.5rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.5rem;box-shadow:var(--shadow-sm)}
+    .action-options{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+    .checkbox-label{display:inline-flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;user-select:none}
+    .checkbox-label input[type=checkbox]{accent-color:var(--airtel-red);width:16px;height:16px}
+    .btn-primary{background:var(--airtel-red);color:#fff;border:none;padding:.8rem 2.2rem;font-size:1rem;font-weight:700;border-radius:var(--radius-sm);cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 4px 10px rgba(228,0,0,.3)}
+    .btn-primary:hover:not(:disabled){background:var(--airtel-red-dark);transform:translateY(-1px)}
+    .btn-primary:disabled{background:#cbd5e1;cursor:not-allowed;box-shadow:none;transform:none}
+    .progress-section{background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:none;box-shadow:var(--shadow-sm)}
+    .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+    .progress-status-text{font-weight:700;font-size:.95rem}
+    .progress-percent-text{font-weight:800;color:var(--airtel-red);font-size:1.1rem}
+    .progress-bar-track{width:100%;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden;margin-bottom:.75rem}
+    .progress-bar-fill{width:0%;height:100%;background:linear-gradient(90deg,#E40000,#ff4d4d);border-radius:9999px;transition:width .15s ease-out}
+    .progress-metrics{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text-secondary);flex-wrap:wrap;gap:8px}
+    .kpi-section{display:none;margin-bottom:1.5rem}
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+    .kpi-card{background:#fff;border-radius:var(--radius-md);padding:1.25rem;border:1px solid var(--border-color);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+    .kpi-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:var(--border-color)}
+    .kpi-card.total::before{background:#3b82f6}
+    .kpi-card.matched::before{background:var(--success)}
+    .kpi-card.unmatched::before{background:var(--danger)}
+    .kpi-card.duplicate::before{background:var(--warning)}
+    .kpi-card.speed::before{background:var(--airtel-red)}
+    .kpi-label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);margin-bottom:.5rem}
+    .kpi-value{font-size:1.85rem;font-weight:800;line-height:1.1;margin-bottom:.35rem}
+    .kpi-subtext{font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+    .kpi-badge{font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:9999px;display:inline-block}
+    .badge-success{background:var(--success-bg);color:var(--success)}
+    .badge-danger{background:var(--danger-bg);color:var(--danger)}
+    .badge-warning{background:var(--warning-bg);color:var(--warning)}
+    .badge-info{background:#eff6ff;color:#2563eb}
+    .export-section{display:none;background:#fff;border-radius:var(--radius-md);border:1px solid var(--border-color);box-shadow:var(--shadow-sm);padding:1.5rem;margin-bottom:1.5rem}
+    .export-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem}
+    .export-title{font-size:1.1rem;font-weight:700}
+    .export-buttons{display:flex;gap:.75rem;flex-wrap:wrap}
+    .btn-download-primary{background:#16a34a;color:#fff;border:none;padding:.7rem 1.5rem;border-radius:var(--radius-sm);font-size:.95rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 2px 6px rgba(22,163,74,.3)}
+    .btn-download-primary:hover{background:#15803d;transform:translateY(-1px)}
+    .btn-download-secondary{background:#fff;color:var(--text-main);border:1px solid var(--border-color);padding:.7rem 1.3rem;border-radius:var(--radius-sm);font-size:.95rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+    .btn-download-secondary:hover{background:#f8fafc;border-color:#cbd5e1}
+    .table-container{overflow-x:auto;border:1px solid var(--border-color);border-radius:var(--radius-sm);max-height:420px}
+    table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
+    th{background:#f8fafc;padding:.75rem 1rem;font-weight:700;color:var(--text-secondary);border-bottom:2px solid var(--border-color);position:sticky;top:0;white-space:nowrap}
+    th.highlight-col{background:var(--airtel-red-light);color:var(--airtel-red)}
+    td{padding:.65rem 1rem;border-bottom:1px solid var(--border-color);white-space:nowrap}
+    td.highlight-cell{background:#fffafa;font-weight:700;color:var(--airtel-red)}
+    .status-pill{font-size:.7rem;padding:2px 7px;border-radius:4px;font-weight:700;display:inline-block}
+    .pill-matched{background:var(--success-bg);color:var(--success)}
+    .pill-unmatched{background:var(--danger-bg);color:var(--danger)}
+    footer{background:#fff;border-top:1px solid var(--border-color);padding:1.25rem 2rem;text-align:center;font-size:.8rem;color:var(--text-secondary);margin-top:auto}
+    .alert-toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 20px;border-radius:var(--radius-md);box-shadow:var(--shadow-md);font-size:.9rem;display:flex;align-items:center;gap:10px;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s cubic-bezier(.16,1,.3,1)}
+    .alert-toast.show{transform:translateY(0);opacity:1}
+    .alert-toast.error{background:#b91c1c}
+    .alert-toast.success{background:#15803d}
+    code{font-family:Consolas,monospace}
+    .fixnote{font-size:.75rem;background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:6px 10px;border-radius:6px;margin-top:.75rem}
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="brand-group">
+      <div class="brand-logo">a</div>
+      <div class="brand-text">
+        <h1>Airtel Matchmaker <span class="brand-badge">Memory-Safe Engine</span></h1>
+        <p>del_number &rarr; Voice_ID &rarr; DSL_ID High-Speed Lookup</p>
+      </div>
+    </div>
+    <div class="nav-status"><span class="status-dot"></span><span>Engine Ready &bull; Handles 10GB+ files safely</span></div>
+  </header>
+
+  <main class="container">
+    <section class="info-banner">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <div class="info-banner-content">
+        <h4>Fixed: no more "Out of Memory" on big files</h4>
+        <p>The small del_number file is indexed in memory; the huge master txt file is <strong>streamed</strong> line-by-line and never fully loaded — so file size no longer causes a crash, only takes longer to stream through.</p>
+        <div class="tags">
+          <span class="tag">del_number &rarr; Voice_ID match</span>
+          <span class="tag">+919876543210 &rarr; 9876543210</span>
+          <span class="tag">01141437857 &harr; 1141437857</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="cards-grid-2">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="step-num">1</span><span>del_number file (small — gets enriched)</span></div></div>
+        <div class="dropzone" id="dropzone-target">
+          <input type="file" id="file-target" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb">
+          <div class="dropzone-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></div>
+          <div class="dropzone-title">Upload del_number file</div>
+          <div class="dropzone-desc">Excel (.xlsx, .xls) or Text (.txt, .csv)</div>
+        </div>
+        <div class="file-meta-box" id="meta-target">
+          <div class="file-meta-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            <div><div class="file-meta-name" id="name-target">file.xlsx</div><div class="file-meta-size" id="size-target">0 MB</div><div class="file-conversion-tag" id="tag-target" style="display:none;"></div></div>
+          </div>
+          <button type="button" class="btn-remove-file" onclick="resetFile('target')">&times; Remove</button>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span>del_number / phone column:</span><span class="auto-badge" id="auto-target-key" style="display:none;">Auto-detected</span></label>
+          <select id="select-target-key" disabled><option value="">Upload file first...</option></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title"><span class="step-num">2</span><span>Master txt file (huge — streamed, never fully loaded)</span></div></div>
+        <div class="dropzone" id="dropzone-master">
+          <input type="file" id="file-master" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.xlsb">
+          <div class="dropzone-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg></div>
+          <div class="dropzone-title">Upload master txt file</div>
+          <div class="dropzone-desc">Any size — pipe/tab/comma delimited</div>
+        </div>
+        <div class="file-meta-box" id="meta-master">
+          <div class="file-meta-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+            <div><div class="file-meta-name" id="name-master">file.txt</div><div class="file-meta-size" id="size-master">0 MB</div></div>
+          </div>
+          <button type="button" class="btn-remove-file" onclick="resetFile('master')">&times; Remove</button>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span>Voice_ID column (to match against):</span><span class="auto-badge" id="auto-master-key" style="display:none;">Auto-detected</span></label>
+          <select id="select-master-key" disabled><option value="">Upload file first...</option></select>
+        </div>
+        <div class="field-group">
+          <label class="field-label"><span>DSL_ID column (to fetch):</span><span class="auto-badge" id="auto-master-val" style="display:none;">Auto-detected</span></label>
+          <select id="select-master-val" disabled><option value="">Upload file first...</option></select>
+        </div>
+        <div class="fixnote">Master file is read in 8MB chunks and streamed — it is never fully loaded into memory, so this works the same whether it's 1GB or 50GB.</div>
+      </div>
+    </div>
+
+    <section class="action-panel">
+      <div class="action-options">
+        <label class="checkbox-label"><input type="checkbox" id="check-normalize-last10" checked><span>Auto-Normalize numbers (strips +91 / 91 / 0 / junk text, matches last 10 digits)</span></label>
+        <label class="checkbox-label"><input type="checkbox" id="check-include-all-cols" checked><span>Retain all del_number columns in output</span></label>
+      </div>
+      <button type="button" class="btn-primary" id="btn-process" disabled onclick="startProcessing()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <span>Run Lookup</span>
+      </button>
+    </section>
+
+    <section class="progress-section" id="progress-box">
+      <div class="progress-header"><div class="progress-status-text" id="progress-status">Indexing del_number list...</div><div class="progress-percent-text" id="progress-percent">0%</div></div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar"></div></div>
+      <div class="progress-metrics">
+        <span id="metric-processed-rows">Processed: 0 rows</span>
+        <span id="metric-speed">Speed: 0 rows/sec</span>
+        <span id="metric-elapsed">Elapsed: 0.0s</span>
+      </div>
+    </section>
+
+    <section class="kpi-section" id="kpi-box">
+      <div class="kpi-grid">
+        <div class="kpi-card total"><div class="kpi-label">Total del_number Records</div><div class="kpi-value" id="kpi-total">0</div><div class="kpi-subtext">From your uploaded list</div></div>
+        <div class="kpi-card matched"><div class="kpi-label">Successfully Fetched</div><div class="kpi-value" id="kpi-matched" style="color:var(--success)">0</div><div class="kpi-subtext"><span class="kpi-badge badge-success" id="kpi-matched-pct">0%</span><span>matched to DSL_ID</span></div></div>
+        <div class="kpi-card unmatched"><div class="kpi-label">Not Found / Unmatched</div><div class="kpi-value" id="kpi-unmatched" style="color:var(--danger)">0</div><div class="kpi-subtext"><span class="kpi-badge badge-danger" id="kpi-unmatched-pct">0%</span><span>missing from master file</span></div></div>
+        <div class="kpi-card duplicate"><div class="kpi-label">Duplicates Found</div><div class="kpi-value" id="kpi-duplicates" style="color:var(--warning)">0</div><div class="kpi-subtext"><span class="kpi-badge badge-warning" id="kpi-dups-detail">0 in list / 0 in master</span></div></div>
+        <div class="kpi-card speed"><div class="kpi-label">Performance</div><div class="kpi-value" id="kpi-speed">0k</div><div class="kpi-subtext"><span class="kpi-badge badge-info" id="kpi-time">0.0s</span><span>total time</span></div></div>
+      </div>
+    </section>
+
+    <section class="export-section" id="export-box">
+      <div class="export-header">
+        <div><div class="export-title">Lookup Complete &bull; Results Ready</div><p style="font-size:.85rem;color:var(--text-secondary)">Previewing first 100 rows. Download the full CSV below.</p></div>
+        <div class="export-buttons">
+          <button type="button" class="btn-download-primary" onclick="downloadEnrichedFile()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Download Enriched File (CSV)</span></button>
+          <button type="button" class="btn-download-secondary" onclick="downloadUnmatchedFile()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg><span>Download Unmatched Records</span></button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="preview-table"><thead id="preview-thead"></thead><tbody id="preview-tbody"></tbody></table>
+      </div>
+    </section>
+  </main>
+
+  <footer><p>Airtel Matchmaker &bull; Memory-Safe Stream Engine &bull; runs entirely in your browser</p></footer>
+  <div class="alert-toast" id="toast"></div>
+
+  <script id="worker-script" type="text/plain">
+    // Persistent worker state across messages
+    let targetMap = new Map();       // normalized key -> array of original target row arrays
+    let targetHeadersGlobal = [];
+    let targetTotalRows = 0;
+    let targetDuplicatesInSource = 0;
+
+    function extractKey(raw, useNorm) {
+      if (raw === null || raw === undefined) return null;
+      const str = String(raw).trim();
+      if (!str) return null;
+      if (!useNorm) return str;
+      const digits = str.replace(/\D/g, '');
+      if (digits.length < 10) return null;
+      return digits.slice(-10);
+    }
+
+    function detectDelimiter(line) {
+      const tabCount = (line.match(/\t/g) || []).length;
+      const pipeCount = (line.match(/\|/g) || []).length;
+      const commaCount = (line.match(/,/g) || []).length;
+      const semiCount = (line.match(/;/g) || []).length;
+      if (tabCount >= pipeCount && tabCount >= commaCount && tabCount >= semiCount && tabCount > 0) return '\t';
+      if (pipeCount >= commaCount && pipeCount >= semiCount && pipeCount > 0) return '|';
+      if (commaCount >= semiCount && commaCount > 0) return ',';
+      if (semiCount > 0) return ';';
+      return ',';
+    }
+
+    function parseDelimitedLine(line, delimiter) {
+      if (delimiter === '\t' || delimiter === '|') {
+        return line.split(delimiter).map(s => s.trim().replace(/^["']|["']$/g, ''));
+      }
+      const result = [];
+      let start = 0, inQuotes = false;
+      const len = line.length;
+      for (let i = 0; i < len; i++) {
+        const c = line[i];
+        if (c === '"') inQuotes = !inQuotes;
+        else if (c === delimiter && !inQuotes) {
+          let field = line.substring(start, i);
+          if (field.startsWith('"') && field.endsWith('"')) field = field.slice(1, -1).replace(/""/g, '"');
+          result.push(field.trim());
+          start = i + 1;
+        }
+      }
+      let lastField = line.substring(start);
+      if (lastField.startsWith('"') && lastField.endsWith('"')) lastField = lastField.slice(1, -1).replace(/""/g, '"');
+      result.push(lastField.trim());
+      return result;
+    }
+
+    const csvEsc = v => `"${String(v==null?'':v).replace(/"/g,'""')}"`;
+
+    self.onmessage = async function(e) {
+      const data = e.data;
+
+      if (data.action === 'INDEX_TARGET') {
+        const file = data.file;
+        const keyColIdx = data.keyColIdx;
+        const useNorm = data.useNormalization;
+
+        targetMap = new Map();
+        targetDuplicatesInSource = 0;
+        targetTotalRows = 0;
+
+        const text = await file.text(); // small file — safe to read fully
+        const lines = text.split(/\r\n|\n|\r/).filter(l => l.length > 0);
+        let delimiter = ',';
+        targetHeadersGlobal = [];
+
+        if (lines.length > 0) {
+          delimiter = detectDelimiter(lines[0]);
+          targetHeadersGlobal = parseDelimitedLine(lines[0], delimiter);
+          for (let i = 1; i < lines.length; i++) {
+            const cols = parseDelimitedLine(lines[i], delimiter);
+            targetTotalRows++;
+            const rawKey = cols[keyColIdx] || '';
+            const key = extractKey(rawKey, useNorm);
+            if (!key) continue;
+            if (targetMap.has(key)) {
+              targetDuplicatesInSource++;
+              targetMap.get(key).push(cols);
+            } else {
+              targetMap.set(key, [cols]);
+            }
+          }
+        }
+
+        self.postMessage({
+          type: 'TARGET_INDEXED',
+          totalKeys: targetMap.size,
+          duplicates: targetDuplicatesInSource,
+          totalRows: targetTotalRows,
+          headers: targetHeadersGlobal
+        });
+      }
+
+      else if (data.action === 'STREAM_MASTER') {
+        const file = data.file;
+        const masterKeyColIdx = data.masterKeyColIdx;
+        const masterValColIdx = data.masterValColIdx;
+        const outputColName = data.outputColName || 'DSL_ID';
+        const useNorm = data.useNormalization;
+        const includeAllCols = data.includeAllCols;
+
+        const chunkSize = 1024 * 1024 * 8; // 8MB — master file streamed, never fully loaded
+        let offset = 0, leftover = '', delimiter = ',', isFirstLine = true;
+        let totalMasterRows = 0, matchedRowCount = 0, masterDuplicateHits = 0;
+        const matchedKeysFound = new Set();
+        const previewRows = [];
+        const outputChunks = [];
+        const startTime = Date.now();
+
+        const keyColName = targetHeadersGlobal[data.targetKeyColIdx] || 'del_number';
+        const headerLine = includeAllCols
+          ? targetHeadersGlobal.map(csvEsc).join(',') + `,${csvEsc(outputColName)},${csvEsc('MATCH_STATUS')}\r\n`
+          : `${csvEsc(keyColName)},${csvEsc(outputColName)},${csvEsc('MATCH_STATUS')}\r\n`;
+        outputChunks.push(new Blob([headerLine], {type:'text/csv;charset=utf-8;'}));
+
+        function rowToCsv(targetCols, dslVal, status) {
+          if (includeAllCols) return targetCols.map(csvEsc).join(',') + `,${csvEsc(dslVal)},${csvEsc(status)}\r\n`;
+          return `${csvEsc(targetCols[data.targetKeyColIdx])},${csvEsc(dslVal)},${csvEsc(status)}\r\n`;
+        }
+
+        while (offset < file.size) {
+          const slice = file.slice(offset, offset + chunkSize);
+          const text = await slice.text();
+          offset += chunkSize;
+          const content = leftover + text;
+          const lines = content.split(/\r\n|\n|\r/);
+          leftover = lines.pop();
+
+          let batchCsv = '';
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line) continue;
+            if (isFirstLine) { delimiter = detectDelimiter(line); isFirstLine = false; continue; }
+            totalMasterRows++;
+            const cols = parseDelimitedLine(line, delimiter);
+            const rawKey = cols[masterKeyColIdx] || '';
+            const key = extractKey(rawKey, useNorm);
+            if (key && targetMap.has(key)) {
+              if (matchedKeysFound.has(key)) masterDuplicateHits++;
+              matchedKeysFound.add(key);
+              const dslVal = cols[masterValColIdx] || '';
+              for (const trow of targetMap.get(key)) {
+                batchCsv += rowToCsv(trow, dslVal, 'MATCHED');
+                matchedRowCount++;
+                if (previewRows.length < 100) previewRows.push({rawKey: trow[data.targetKeyColIdx], normKey:key, dslId:dslVal, status:'MATCHED'});
+              }
+            }
+          }
+          if (batchCsv) outputChunks.push(new Blob([batchCsv], {type:'text/csv;charset=utf-8;'}));
+
+          const percent = Math.min(99, Math.round((offset/file.size)*100));
+          self.postMessage({type:'PROGRESS', percent, rows:totalMasterRows, speed:Math.round(totalMasterRows/Math.max(0.1,(Date.now()-startTime)/1000))});
+        }
+        if (leftover && !isFirstLine) {
+          totalMasterRows++;
+          const cols = parseDelimitedLine(leftover, delimiter);
+          const rawKey = cols[masterKeyColIdx] || '';
+          const key = extractKey(rawKey, useNorm);
+          if (key && targetMap.has(key)) {
+            if (matchedKeysFound.has(key)) masterDuplicateHits++;
+            matchedKeysFound.add(key);
+            const dslVal = cols[masterValColIdx] || '';
+            let tail = '';
+            for (const trow of targetMap.get(key)) { tail += rowToCsv(trow, dslVal, 'MATCHED'); matchedRowCount++; }
+            outputChunks.push(new Blob([tail], {type:'text/csv;charset=utf-8;'}));
+          }
+        }
+
+        // build unmatched output from target entries never found
+        let unmatchedCsv = includeAllCols
+          ? targetHeadersGlobal.map(csvEsc).join(',') + `,${csvEsc('REASON')}\r\n`
+          : `${csvEsc(keyColName)},${csvEsc('REASON')}\r\n`;
+        let unmatchedCount = 0;
+        for (const [key, rowsArr] of targetMap.entries()) {
+          if (!matchedKeysFound.has(key)) {
+            for (const trow of rowsArr) {
+              unmatchedCount++;
+              unmatchedCsv += (includeAllCols ? trow.map(csvEsc).join(',') : csvEsc(trow[data.targetKeyColIdx])) + `,${csvEsc('Not found in master file')}\r\n`;
+              if (previewRows.length < 100) previewRows.push({rawKey:trow[data.targetKeyColIdx], normKey:key, dslId:'NOT FOUND', status:'NOT_FOUND'});
+            }
+          }
+        }
+
+        self.postMessage({
+          type: 'PROCESSING_DONE',
+          matchedCount: matchedRowCount,
+          unmatchedCount: unmatchedCount,
+          masterDuplicateHits: masterDuplicateHits,
+          totalMasterRows: totalMasterRows,
+          timeMs: Date.now() - startTime,
+          previewRows: previewRows,
+          enrichedBlob: new Blob(outputChunks, {type:'text/csv;charset=utf-8;'}),
+          unmatchedBlob: new Blob([unmatchedCsv], {type:'text/csv;charset=utf-8;'}),
+          outputColName: outputColName
+        });
+      }
+    };
+  </script>
+
+  <script>
+    let targetFile=null, masterFile=null, targetConvertedFile=null, masterConvertedFile=null;
+    let targetHeaders=[], masterHeaders=[];
+    let enrichedFileBlob=null, unmatchedFileBlob=null;
+    let worker=null, processStartTime=0, timerInterval=null;
+    let indexedTargetTotal=0, indexedTargetDuplicates=0;
+
+    function showToast(message, type='normal'){
+      const toast=document.getElementById('toast');
+      toast.textContent=message; toast.className='alert-toast show '+type;
+      setTimeout(()=>{toast.className='alert-toast';},4500);
+    }
+    function formatBytes(bytes){
+      if(bytes===0) return '0 Bytes';
+      const k=1024,sizes=['Bytes','KB','MB','GB'],i=Math.floor(Math.log(bytes)/Math.log(k));
+      return parseFloat((bytes/Math.pow(k,i)).toFixed(2))+' '+sizes[i];
+    }
+    function isExcelFile(file){ return ['xlsx','xls','xlsm','xlsb'].includes(file.name.split('.').pop().toLowerCase()); }
+
+    async function convertExcelToCSV(file, onStatus){
+      if(!window.XLSX) throw new Error("Excel reader (SheetJS) failed to load — no internet reached the CDN. Please save this file as CSV and upload that instead.");
+      if(onStatus) onStatus('Reading Excel spreadsheet...');
+      const buffer = await file.arrayBuffer();
+      if(onStatus) onStatus('Parsing workbook...');
+      const workbook = XLSX.read(buffer,{type:'array',cellDates:true});
+      const ws = workbook.Sheets[workbook.SheetNames[0]];
+      if(onStatus) onStatus('Converting to CSV...');
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+      return new File([blob], file.name.replace(/\.[^/.]+$/,'.csv'), {type:'text/csv'});
+    }
+
+    async function sniffHeadersFromText(file){
+      const text = await file.slice(0,131072).text();
+      const firstLine = text.split(/\r\n|\n|\r/)[0];
+      if(!firstLine) return [];
+      const tab=(firstLine.match(/\t/g)||[]).length, pipe=(firstLine.match(/\|/g)||[]).length,
+            comma=(firstLine.match(/,/g)||[]).length, semi=(firstLine.match(/;/g)||[]).length;
+      let delim=',';
+      if(tab>=pipe && tab>=comma && tab>=semi && tab>0) delim='\t';
+      else if(pipe>=comma && pipe>=semi && pipe>0) delim='|';
+      else if(comma>=semi && comma>0) delim=',';
+      else if(semi>0) delim=';';
+      if(delim==='\t'||delim==='|') return firstLine.split(delim).map(s=>s.trim().replace(/^["']|["']$/g,''));
+      return firstLine.split(delim).map(c=>c.replace(/^["']|["']$/g,'').trim());
+    }
+
+    function autoDetectColumn(headers, keywords){
+      for(let i=0;i<headers.length;i++){
+        const h=headers[i].toLowerCase().replace(/[\s_-]+/g,'');
+        for(const kw of keywords){ if(h===kw.toLowerCase().replace(/[\s_-]+/g,'')) return i; }
+      }
+      for(let i=0;i<headers.length;i++){
+        const h=headers[i].toLowerCase();
+        for(const kw of keywords){ if(h.includes(kw.toLowerCase())) return i; }
+      }
+      return -1;
+    }
+
+    async function handleTargetFile(file){
+      if(!file) return;
+      targetFile=file;
+      document.getElementById('meta-target').style.display='flex';
+      document.getElementById('name-target').textContent=file.name;
+      document.getElementById('size-target').textContent=formatBytes(file.size);
+      document.getElementById('dropzone-target').style.display='none';
+      try{
+        if(isExcelFile(file)){
+          document.getElementById('tag-target').style.display='inline-block';
+          document.getElementById('tag-target').textContent='Converting Excel...';
+          targetConvertedFile = await convertExcelToCSV(file, m=>document.getElementById('tag-target').textContent=m);
+          document.getElementById('tag-target').textContent='Converted ('+formatBytes(targetConvertedFile.size)+')';
+        } else {
+          targetConvertedFile=file;
+          document.getElementById('tag-target').style.display='none';
+        }
+        targetHeaders = await sniffHeadersFromText(targetConvertedFile);
+        populateSelect('select-target-key', targetHeaders);
+        const guess = autoDetectColumn(targetHeaders, ['del_number','del number','phone','mobile','number']);
+        if(guess!==-1){ document.getElementById('select-target-key').selectedIndex=guess; document.getElementById('auto-target-key').style.display='inline-block'; }
+        checkReadyToProcess();
+        showToast(`del_number file loaded: ${targetHeaders.length} columns`, 'success');
+      }catch(err){
+        console.error(err);
+        showToast('Failed to parse del_number file: '+err.message,'error');
+        resetFile('target');
+      }
+    }
+
+    async function handleMasterFile(file){
+      if(!file) return;
+      masterFile=file;
+      document.getElementById('meta-master').style.display='flex';
+      document.getElementById('name-master').textContent=file.name;
+      document.getElementById('size-master').textContent=formatBytes(file.size);
+      document.getElementById('dropzone-master').style.display='none';
+      try{
+        if(isExcelFile(file)){
+          throw new Error('The master file should stay as .txt/.csv — converting a multi-GB Excel file in-browser is not memory-safe. If it truly is xlsx, please re-export it as a delimited text/CSV file first.');
+        }
+        masterConvertedFile=file;
+        masterHeaders = await sniffHeadersFromText(masterConvertedFile);
+        populateSelect('select-master-key', masterHeaders);
+        populateSelect('select-master-val', masterHeaders);
+        const voiceIdx = autoDetectColumn(masterHeaders, ['voice_id','voice','mobile','msisdn','phone']);
+        if(voiceIdx!==-1){ document.getElementById('select-master-key').selectedIndex=voiceIdx; document.getElementById('auto-master-key').style.display='inline-block'; }
+        const dslIdx = autoDetectColumn(masterHeaders, ['dsl_id','dsl','dsl_number','account_number']);
+        if(dslIdx!==-1 && dslIdx!==voiceIdx){ document.getElementById('select-master-val').selectedIndex=dslIdx; document.getElementById('auto-master-val').style.display='inline-block'; }
+        checkReadyToProcess();
+        showToast(`Master file loaded: ${masterHeaders.length} columns detected (header only — file itself will be streamed)`, 'success');
+      }catch(err){
+        console.error(err);
+        showToast(err.message,'error');
+        resetFile('master');
+      }
+    }
+
+    function populateSelect(id, headers){
+      const el=document.getElementById(id);
+      el.innerHTML='';
+      if(!headers||headers.length===0){ el.innerHTML='<option value="">No columns detected</option>'; el.disabled=true; return; }
+      headers.forEach((h,idx)=>{
+        const o=document.createElement('option'); o.value=idx; o.textContent=`${h||'Column '+(idx+1)} (Col ${idx+1})`; el.appendChild(o);
+      });
+      el.disabled=false;
+    }
+
+    function resetFile(type){
+      if(type==='target'){
+        targetFile=null; targetConvertedFile=null; targetHeaders=[];
+        document.getElementById('meta-target').style.display='none';
+        document.getElementById('dropzone-target').style.display='block';
+        document.getElementById('file-target').value='';
+        document.getElementById('select-target-key').innerHTML='<option value="">Upload file first...</option>';
+        document.getElementById('select-target-key').disabled=true;
+        document.getElementById('auto-target-key').style.display='none';
+      } else {
+        masterFile=null; masterConvertedFile=null; masterHeaders=[];
+        document.getElementById('meta-master').style.display='none';
+        document.getElementById('dropzone-master').style.display='block';
+        document.getElementById('file-master').value='';
+        document.getElementById('select-master-key').innerHTML='<option value="">Upload file first...</option>';
+        document.getElementById('select-master-key').disabled=true;
+        document.getElementById('select-master-val').innerHTML='<option value="">Upload file first...</option>';
+        document.getElementById('select-master-val').disabled=true;
+        document.getElementById('auto-master-key').style.display='none';
+        document.getElementById('auto-master-val').style.display='none';
+      }
+      checkReadyToProcess();
+    }
+
+    function checkReadyToProcess(){
+      document.getElementById('btn-process').disabled = !(targetConvertedFile && masterConvertedFile);
+    }
+
+    function setupDragAndDrop(zoneId, inputId, handler){
+      const zone=document.getElementById(zoneId), input=document.getElementById(inputId);
+      zone.addEventListener('dragover', e=>{e.preventDefault(); zone.classList.add('dragover');});
+      zone.addEventListener('dragleave', ()=>zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('dragover'); if(e.dataTransfer.files.length) handler(e.dataTransfer.files[0]); });
+      input.addEventListener('change', e=>{ if(e.target.files.length) handler(e.target.files[0]); });
+    }
+
+    function initWorker(){
+      if(worker) worker.terminate();
+      const blob = new Blob([document.getElementById('worker-script').textContent], {type:'application/javascript'});
+      worker = new Worker(URL.createObjectURL(blob));
+      worker.onmessage = function(e){
+        const msg=e.data;
+        if(msg.type==='PROGRESS'){ updateProgressUI(msg); }
+        else if(msg.type==='TARGET_INDEXED'){
+          indexedTargetTotal = msg.totalRows;
+          indexedTargetDuplicates = msg.duplicates;
+          document.getElementById('progress-status').textContent = `del_number list indexed (${msg.totalKeys.toLocaleString()} unique numbers). Streaming master file...`;
+          streamMasterFile();
+        }
+        else if(msg.type==='PROCESSING_DONE'){ finishProcessing(msg); }
+      };
+      worker.onerror = function(err){
+        console.error('Worker error:', err);
+        showToast('Error in processing engine: '+err.message, 'error');
+        document.getElementById('btn-process').disabled=false;
+      };
+    }
+
+    function startProcessing(){
+      if(!targetConvertedFile || !masterConvertedFile) return;
+      const targetKeyIdx = parseInt(document.getElementById('select-target-key').value,10);
+      if(isNaN(targetKeyIdx)){ showToast('Please select the del_number column','error'); return; }
+
+      initWorker();
+      document.getElementById('btn-process').disabled=true;
+      document.getElementById('progress-box').style.display='block';
+      document.getElementById('kpi-box').style.display='none';
+      document.getElementById('export-box').style.display='none';
+      document.getElementById('progress-bar').style.width='0%';
+      document.getElementById('progress-percent').textContent='0%';
+      document.getElementById('progress-status').textContent='Indexing del_number list...';
+
+      processStartTime=Date.now();
+      if(timerInterval) clearInterval(timerInterval);
+      timerInterval=setInterval(()=>{
+        document.getElementById('metric-elapsed').textContent=`Elapsed: ${((Date.now()-processStartTime)/1000).toFixed(1)}s`;
+      },200);
+
+      worker.postMessage({
+        action:'INDEX_TARGET',
+        file: targetConvertedFile,
+        keyColIdx: targetKeyIdx,
+        useNormalization: document.getElementById('check-normalize-last10').checked
+      });
+    }
+
+    function streamMasterFile(){
+      const masterKeyIdx = parseInt(document.getElementById('select-master-key').value,10);
+      const masterValIdx = parseInt(document.getElementById('select-master-val').value,10);
+      const targetKeyIdx = parseInt(document.getElementById('select-target-key').value,10);
+      const outputColName = 'DSL_ID';
+      document.getElementById('progress-bar').style.width='0%';
+      document.getElementById('progress-percent').textContent='0%';
+      worker.postMessage({
+        action:'STREAM_MASTER',
+        file: masterConvertedFile,
+        masterKeyColIdx: masterKeyIdx,
+        masterValColIdx: masterValIdx,
+        targetKeyColIdx: targetKeyIdx,
+        outputColName: outputColName,
+        useNormalization: document.getElementById('check-normalize-last10').checked,
+        includeAllCols: document.getElementById('check-include-all-cols').checked
+      });
+    }
+
+    function updateProgressUI(msg){
+      document.getElementById('progress-bar').style.width=msg.percent+'%';
+      document.getElementById('progress-percent').textContent=msg.percent+'%';
+      document.getElementById('metric-processed-rows').textContent=`Processed: ${msg.rows.toLocaleString()} rows`;
+      document.getElementById('metric-speed').textContent=`Speed: ${msg.speed.toLocaleString()} rows/sec`;
+    }
+
+    function finishProcessing(res){
+      if(timerInterval) clearInterval(timerInterval);
+      const totalSec = ((Date.now()-processStartTime)/1000).toFixed(2);
+      enrichedFileBlob = res.enrichedBlob;
+      unmatchedFileBlob = res.unmatchedBlob;
+
+      document.getElementById('progress-bar').style.width='100%';
+      document.getElementById('progress-percent').textContent='100%';
+      document.getElementById('progress-status').textContent='Lookup complete! All rows processed.';
+      document.getElementById('btn-process').disabled=false;
+
+      document.getElementById('kpi-box').style.display='block';
+      document.getElementById('kpi-total').textContent=indexedTargetTotal.toLocaleString();
+      document.getElementById('kpi-matched').textContent=res.matchedCount.toLocaleString();
+      document.getElementById('kpi-unmatched').textContent=res.unmatchedCount.toLocaleString();
+      document.getElementById('kpi-duplicates').textContent=(indexedTargetDuplicates+res.masterDuplicateHits).toLocaleString();
+
+      const matchedPct = indexedTargetTotal>0 ? ((res.matchedCount/indexedTargetTotal)*100).toFixed(1):0;
+      const unmatchedPct = indexedTargetTotal>0 ? ((res.unmatchedCount/indexedTargetTotal)*100).toFixed(1):0;
+      document.getElementById('kpi-matched-pct').textContent=matchedPct+'%';
+      document.getElementById('kpi-unmatched-pct').textContent=unmatchedPct+'%';
+      document.getElementById('kpi-dups-detail').textContent=`${indexedTargetDuplicates.toLocaleString()} in list / ${res.masterDuplicateHits.toLocaleString()} in master`;
+
+      const speedVal = Math.round(res.totalMasterRows/Math.max(0.1,totalSec));
+      document.getElementById('kpi-speed').textContent = speedVal>1000 ? (speedVal/1000).toFixed(1)+'k/s' : speedVal+'/s';
+      document.getElementById('kpi-time').textContent = totalSec+'s';
+
+      populatePreviewTable(res.previewRows, res.outputColName);
+      document.getElementById('export-box').style.display='block';
+      showToast(`Processed ${res.totalMasterRows.toLocaleString()} master rows in ${totalSec}s — ${res.matchedCount.toLocaleString()} matches found`, 'success');
+    }
+
+    function populatePreviewTable(rows, outputColName){
+      const thead=document.getElementById('preview-thead'), tbody=document.getElementById('preview-tbody');
+      thead.innerHTML = `<tr><th>#</th><th>del_number</th><th>Matched Key</th><th class="highlight-col">${outputColName}</th><th>Status</th></tr>`;
+      tbody.innerHTML='';
+      if(!rows||rows.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:2rem;">No data available</td></tr>'; return; }
+      rows.forEach((r,idx)=>{
+        const isMatch = r.status==='MATCHED';
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${idx+1}</td><td><code>${escapeHtml(r.rawKey)}</code></td><td><code>${escapeHtml(r.normKey||'-')}</code></td><td class="highlight-cell">${escapeHtml(r.dslId)}</td><td><span class="status-pill ${isMatch?'pill-matched':'pill-unmatched'}">${isMatch?'&check; MATCHED':'&cross; NOT FOUND'}</span></td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function escapeHtml(str){
+      if(str==null) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function downloadEnrichedFile(){
+      if(!enrichedFileBlob) return;
+      const baseName = targetFile ? targetFile.name.replace(/\.[^/.]+$/,'') : 'data';
+      downloadBlob(enrichedFileBlob, `${baseName}_matched_dsl_enriched.csv`);
+    }
+    function downloadUnmatchedFile(){
+      if(!unmatchedFileBlob) return;
+      const baseName = targetFile ? targetFile.name.replace(/\.[^/.]+$/,'') : 'data';
+      downloadBlob(unmatchedFileBlob, `${baseName}_unmatched_records.csv`);
+    }
+    function downloadBlob(blob, filename){
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download=filename;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },100);
+    }
+
+    window.addEventListener('DOMContentLoaded', ()=>{
+      setupDragAndDrop('dropzone-target','file-target',handleTargetFile);
+      setupDragAndDrop('dropzone-master','file-master',handleMasterFile);
+    });
+  </script>
+</body>
+</html>
