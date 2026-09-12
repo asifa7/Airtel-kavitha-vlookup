@@ -1,21 +1,1012 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telecom DSL &amp; Voice Lookup Dashboard</title>
-    <meta name="description" content="High-performance data matching dashboard for telecom files with phone normalization and DSL ID extraction." />
-    <meta property="og:title" content="Telecom DSL &amp; Voice Lookup Dashboard" />
-    <meta property="og:description" content="High-performance data matching dashboard for telecom files with phone normalization and DSL ID extraction." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#fcfbfb] text-slate-900 antialiased selection:bg-rose-500 selection:text-white">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airtel 10-Digit Matchmaker & Stream Extractor</title>
+<style>
+  :root {
+    --primary: #e60000;
+    --primary-dark: #b80000;
+    --primary-light: #fff0f0;
+    --surface: #ffffff;
+    --bg: #f4f6f9;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --warning: #d97706;
+    --radius: 10px;
+  }
+  
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
 
+  * {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px 16px;
+    min-height: 100vh;
+  }
+
+  /* Fixed static container - NO STRETCHING ALLOWED */
+  .container {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-badge { background: var(--primary); color: white; font-weight: 800; font-size: 19px; padding: 5px 12px; border-radius: 6px; letter-spacing: 0.5px; }
+  .logo-title { font-size: 20px; font-weight: 700; color: #0f172a; }
+  .logo-sub { font-size: 12px; color: var(--text-muted); }
+  .sys-badge { background: #e0f2fe; color: #0369a1; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 20px; border: 1px solid #bae6fd; white-space: nowrap; }
+
+  .grid-steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 820px) {
+    .grid-steps { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-waiting { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .badge-ready { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+
+  .drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 20px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fafafa;
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+  .drop-zone input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .drop-icon { font-size: 26px; margin-bottom: 4px; display: block; }
+  .drop-text { font-size: 13px; font-weight: 600; color: #334155; }
+  .drop-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .file-status-box {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .status-loaded { background: var(--success-bg); border: 1px solid #bbf7d0; color: var(--success); font-weight: 600; }
+  .status-empty { background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted); }
+
+  .btn-download-clean {
+    margin-top: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-download-clean:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .btn-download-clean:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .progress-wrap { margin-top: 10px; display: none; }
+  .progress-bar-bg { width: 100%; height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .progress-bar { height: 100%; width: 0%; background: var(--primary); transition: width 0.1s ease; }
+  .progress-text { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+
+  /* Match Action Section */
+  .action-panel {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .btn-start {
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 38px;
+    border-radius: 26px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(230,0,0,0.25);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-start:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(230,0,0,0.35); }
+  .btn-start:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+  /* Results Section */
+  .results-section { display: none; margin-bottom: 24px; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-box { background: white; padding: 12px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 800; color: #0f172a; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-top: 2px; }
+
+  .download-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .btn-dl {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: white;
+    transition: all 0.2s;
+  }
+  .btn-dl-primary { background: #0f172a; color: white; border-color: #0f172a; }
+  .btn-dl-primary:hover { background: #1e293b; }
+  .btn-dl-secondary { background: white; color: #0f172a; }
+  .btn-dl-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+  /* Table wrap strictly bounded */
+  .preview-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    max-height: 420px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: auto;
+  }
+  th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+  }
+  tr:hover td { background: #f8fafc; }
+  .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; }
+  .status-matched { background: var(--success-bg); color: var(--success); }
+  .status-unmatched { background: #fef2f2; color: #dc2626; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-badge">airtel</div>
+      <div>
+        <div class="logo-title">Airtel 10-Digit Matchmaker & Stream Extractor</div>
+        <div class="logo-sub">Standardizes Master & Target to 10-Digit Numbers First • 100% Match Precision</div>
+      </div>
+    </div>
+    <div class="sys-badge">⚡ Static Viewport Locked</div>
+  </header>
+
+  <div class="grid-steps">
+    <!-- STEP 1: MASTER -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">
+          <div class="step-num">1</div>
+          <span>Master Database</span>
+        </div>
+        <span class="badge badge-waiting" id="masterBadge">Waiting File</span>
+      </div>
+
+      <div class="drop-zone" id="dropMaster">
+        <input type="file" id="fileMaster" accept=".xlsx,.xls,.csv,.txt,.dump">
+        <span class="drop-icon">📂</span>
+        <div class="drop-text">Select or Drop Master File (.xlsx, .csv, or .txt dump)</div>
+        <div class="drop-hint">Accepts Book2.xlsx, raw text dump, or CSV. Automatically converts to 10-digit format!</div>
+      </div>
+
+      <div class="progress-wrap" id="masterProgressWrap">
+        <div class="progress-text">
+          <span id="masterStatusText">Extracting 10-digit numbers...</span>
+          <span id="masterProgressPct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="masterProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="file-status-box status-empty" id="masterStatusBox">
+        <span id="masterStatusDesc">No master file loaded.</span>
+        <strong id="masterCountText">0 records</strong>
+      </div>
+
+      <button class="btn-download-clean" id="btnDlMasterClean" disabled onclick="downloadMasterCleanCSV()">
+        📥 Download Clean 10-Digit Master CSV
+      </button>
+    </div>
+
+    <!-- STEP 2: TARGET -->
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">
+          <div class="step-num">2</div>
+          <span>Target File to Enrich</span>
+        </div>
+        <span class="badge badge-waiting" id="targetBadge">Waiting File</span>
+      </div>
+
+      <div class="drop-zone" id="dropTarget">
+        <input type="file" id="fileTarget" accept=".xlsx,.xls,.csv,.txt">
+        <span class="drop-icon">🎯</span>
+        <div class="drop-text">Select or Drop Target File (Book1.xlsx / CSV)</div>
+        <div class="drop-hint">Accepts any list of phone numbers or Voice_IDs. Converts all to 10 digits!</div>
+      </div>
+
+      <div class="progress-wrap" id="targetProgressWrap">
+        <div class="progress-text">
+          <span id="targetStatusText">Extracting 10-digit numbers...</span>
+          <span id="targetProgressPct">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="targetProgressBar"></div>
+        </div>
+      </div>
+
+      <div class="file-status-box status-empty" id="targetStatusBox">
+        <span id="targetStatusDesc">No target file loaded.</span>
+        <strong id="targetCountText">0 records</strong>
+      </div>
+
+      <button class="btn-download-clean" id="btnDlTargetClean" disabled onclick="downloadTargetCleanCSV()">
+        📥 Download Clean 10-Digit Target CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3: MATCH BUTTON -->
+  <div class="action-panel">
+    <button class="btn-start" id="btnStart" disabled onclick="startMatchingProcess()">
+      <span>⚡ MATCH ON 10-DIGIT NUMBERS & ENRICH TARGET</span>
+    </button>
+    <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);" id="actionStatusDesc">
+      Load Master and Target files above to begin matching.
+    </div>
+  </div>
+
+  <!-- RESULTS SECTION -->
+  <div class="results-section" id="resultsSection">
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="resTargetTotal">0</div>
+        <div class="stat-label">Target Rows</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: var(--success);" id="resMatched">0</div>
+        <div class="stat-label">Matched (DSL Found)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: #dc2626;" id="resUnmatched">0</div>
+        <div class="stat-label">Not Found In Master</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" style="color: #2563eb;" id="resMatchRate">0%</div>
+        <div class="stat-label">Match Rate</div>
+      </div>
+    </div>
+
+    <div class="download-buttons">
+      <button class="btn-dl btn-dl-primary" id="btnDlEnriched" onclick="downloadEnriched()">
+        📥 Download Enriched Target CSV
+      </button>
+      <button class="btn-dl btn-dl-secondary" id="btnDlUnmatched" onclick="downloadUnmatched()">
+        📄 Download Unmatched CSV
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="step-title">Preview Enriched Data (First 100 Rows)</div>
+        <span style="font-size: 11.5px; color: var(--text-muted);" id="previewTimeText"></span>
+      </div>
+      <div class="preview-table-wrap">
+        <table id="previewTable">
+          <thead>
+            <tr id="previewTableHead"></tr>
+          </thead>
+          <tbody id="previewTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKER CODE -->
+<script id="workerCode" type="text/plain">
+// Standardized 10-Digit Engine
+// Normalizes every phone number into its true 10-digit representation
+const dslPool = [];
+const dslIndexMap = new Map();
+const master10Map = new Map(); // uint32 (10-digit number) -> uint32 dslId
+
+let masterCleanCsvParts = ["DSL_ID,Voice_10Digit,Original_Voice\n"];
+let targetCleanCsvParts = [];
+let targetRows = [];
+
+function internDsl(dsl) {
+  if (!dsl) return -1;
+  const s = String(dsl).trim();
+  let id = dslIndexMap.get(s);
+  if (id === undefined) {
+    id = dslPool.length;
+    dslPool.push(s);
+    dslIndexMap.set(s, id);
+  }
+  return id;
+}
+
+// Extract standard 10-digit key from any format
+function to10DigitNumber(raw) {
+  if (!raw) return null;
+  const digits = String(raw).replace(/\D+/g, '');
+  if (!digits) return null;
+  const s = digits.length >= 10 ? digits.slice(-10) : digits;
+  const n = parseInt(s, 10);
+  return isNaN(n) ? null : n;
+}
+
+self.onmessage = async function(e) {
+  const { action, payload } = e.data;
+
+  if (action === 'process_master_file') {
+    handleProcessMaster(payload.file);
+  } else if (action === 'process_master_records') {
+    handleProcessMasterRecords(payload.records);
+  } else if (action === 'process_target_records') {
+    handleProcessTargetRecords(payload.rows, payload.phoneColIdx, payload.headers);
+  } else if (action === 'run_match') {
+    handleRunMatch(payload.targetHeader);
+  }
+};
+
+// Stream parse any text / dump / csv master file
+async function handleProcessMaster(file) {
+  master10Map.clear();
+  dslPool.length = 0;
+  dslIndexMap.clear();
+  masterCleanCsvParts = ["DSL_ID,Voice_10Digit,Original_Voice\n"];
+
+  const CHUNK_SIZE = 8 * 1024 * 1024;
+  const totalSize = file.size;
+  let offset = 0;
+  let leftover = '';
+  let count = 0;
+
+  const dslRegex = /\b([0-9a-zA-Z]+_(?:wifi|dsl)|DSL[-_]?[0-9a-zA-Z]+)\b/i;
+  const decoder = new TextDecoder('utf-8', { stream: true });
+
+  let batchClean = '';
+
+  while (offset < totalSize) {
+    const end = Math.min(offset + CHUNK_SIZE, totalSize);
+    const slice = file.slice(offset, end);
+    const buf = await slice.arrayBuffer();
+    const textChunk = leftover + decoder.decode(buf, { stream: (end < totalSize) });
+
+    const lastNl = textChunk.lastIndexOf('\n');
+    let chunkToProcess = '';
+    if (lastNl !== -1 && end < totalSize) {
+      chunkToProcess = textChunk.substring(0, lastNl);
+      leftover = textChunk.substring(lastNl + 1);
+    } else {
+      chunkToProcess = textChunk;
+      leftover = '';
+    }
+
+    const lines = chunkToProcess.split(/\r?\n/);
+    for (let l = 0; l < lines.length; l++) {
+      const line = lines[l];
+      if (!line) continue;
+      if (line.includes("Customer_Creation_Date") || line.includes("Account_Number")) continue;
+
+      const m = line.match(dslRegex);
+      if (!m) continue;
+
+      const dsl = m[1].trim();
+      const dslId = internDsl(dsl);
+
+      // Split line tokens by comma, tab, or space
+      const tokens = line.split(/[\s,\t|]+/);
+      let foundVoice = '';
+
+      for (let t = 0; t < tokens.length; t++) {
+        const tok = tokens[t];
+        if (!tok || tok === dsl || tok.includes('@') || tok.includes(':') || tok.includes('-') || tok.includes('.')) continue;
+        const digits = tok.replace(/\D+/g, '');
+        if (digits.length >= 10 && digits.length <= 13) {
+          const k = to10DigitNumber(digits);
+          if (k !== null) {
+            master10Map.set(k, dslId);
+            if (!foundVoice) foundVoice = digits;
+          }
+        }
+      }
+
+      if (foundVoice && masterCleanCsvParts.length < 500) { // sample for clean CSV download
+        batchClean += `"${dsl}","${String(to10DigitNumber(foundVoice)).padStart(10, '0')}","${foundVoice}"\n`;
+        if (batchClean.length > 500000) {
+          masterCleanCsvParts.push(batchClean);
+          batchClean = '';
+        }
+      }
+      count++;
+    }
+
+    offset = end;
+    const pct = Math.min(100, Math.round((offset / totalSize) * 100));
+    self.postMessage({
+      type: 'master_progress',
+      percent: pct,
+      count: master10Map.size
+    });
+  }
+
+  if (batchClean.length > 0) masterCleanCsvParts.push(batchClean);
+
+  self.postMessage({
+    type: 'master_ready',
+    count: master10Map.size,
+    cleanParts: masterCleanCsvParts
+  });
+}
+
+// Process structured master records (Excel / clean CSV)
+function handleProcessMasterRecords(records) {
+  master10Map.clear();
+  dslPool.length = 0;
+  dslIndexMap.clear();
+  masterCleanCsvParts = ["DSL_ID,Voice_10Digit,Original_Voice\n"];
+
+  let batch = '';
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i];
+    const dslId = internDsl(r.dsl);
+    const k = to10DigitNumber(r.voice);
+    if (k !== null && dslId >= 0) {
+      master10Map.set(k, dslId);
+      batch += `"${r.dsl}","${String(k).padStart(10, '0')}","${r.voice}"\n`;
+      if (batch.length > 500000) {
+        masterCleanCsvParts.push(batch);
+        batch = '';
+      }
+    }
+  }
+  if (batch.length > 0) masterCleanCsvParts.push(batch);
+
+  self.postMessage({
+    type: 'master_ready',
+    count: master10Map.size,
+    cleanParts: masterCleanCsvParts
+  });
+}
+
+// Process Target records
+function handleProcessTargetRecords(rows, phoneColIdx, headers) {
+  targetRows = [];
+  targetCleanCsvParts = [[...headers, "Target_10Digit"].map(c => `"${c}"`).join(',') + '\n'];
+
+  let batch = '';
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const rawVal = r[phoneColIdx] !== undefined ? String(r[phoneColIdx]) : '';
+    const k = to10DigitNumber(rawVal);
+    const tenDigitStr = k !== null ? String(k).padStart(10, '0') : '';
+
+    targetRows.push({
+      rawArray: r,
+      key10: k,
+      tenDigitStr: tenDigitStr
+    });
+
+    const cleanRow = [...r, tenDigitStr].map(v => `"${String(v !== undefined ? v : '').replace(/"/g, '""')}"`).join(',') + '\n';
+    batch += cleanRow;
+    if (batch.length > 500000) {
+      targetCleanCsvParts.push(batch);
+      batch = '';
+    }
+  }
+  if (batch.length > 0) targetCleanCsvParts.push(batch);
+
+  self.postMessage({
+    type: 'target_ready',
+    count: targetRows.length,
+    cleanParts: targetCleanCsvParts
+  });
+}
+
+// Match target against master on 10-digit keys
+function handleRunMatch(targetHeader) {
+  let matchedCount = 0;
+  let unmatchedCount = 0;
+
+  let enrichedCsvHeader = [...targetHeader, 'Target_10Digit', 'DSL_ID', 'MATCH_STATUS'].map(c => `"${c}"`).join(',') + '\n';
+  let enrichedParts = [enrichedCsvHeader];
+  let unmatchedParts = [targetHeader.map(c => `"${c}"`).join(',') + '\n'];
+
+  let enrichedBatch = '';
+  let unmatchedBatch = '';
+  let previewRows = [];
+
+  const total = targetRows.length;
+
+  for (let i = 0; i < total; i++) {
+    const item = targetRows[i];
+    let dsl = null;
+
+    if (item.key10 !== null && master10Map.has(item.key10)) {
+      dsl = dslPool[master10Map.get(item.key10)];
+    }
+
+    let matchStatus = 'NOT FOUND';
+    let outDsl = '';
+
+    if (dsl) {
+      outDsl = dsl;
+      matchStatus = 'MATCHED';
+      matchedCount++;
+    } else {
+      unmatchedCount++;
+      const unRow = item.rawArray.map(v => `"${String(v !== undefined ? v : '').replace(/"/g, '""')}"`).join(',') + '\n';
+      unmatchedBatch += unRow;
+    }
+
+    const enRowArr = [...item.rawArray, item.tenDigitStr, outDsl, matchStatus];
+    const enRow = enRowArr.map(v => `"${String(v !== undefined ? v : '').replace(/"/g, '""')}"`).join(',') + '\n';
+    enrichedBatch += enRow;
+
+    if (previewRows.length < 100) {
+      previewRows.push(enRowArr);
+    }
+
+    if (enrichedBatch.length > 1000000) {
+      enrichedParts.push(enrichedBatch);
+      enrichedBatch = '';
+    }
+    if (unmatchedBatch.length > 1000000) {
+      unmatchedParts.push(unmatchedBatch);
+      unmatchedBatch = '';
+    }
+  }
+
+  if (enrichedBatch.length > 0) enrichedParts.push(enrichedBatch);
+  if (unmatchedBatch.length > 0) unmatchedParts.push(unmatchedBatch);
+
+  self.postMessage({
+    type: 'match_completed',
+    matchedCount,
+    unmatchedCount,
+    total,
+    previewRows,
+    enrichedParts,
+    unmatchedParts
+  });
+}
+</script>
+
+<script>
+// UI Management
+let worker;
+let isMasterReady = false;
+let isTargetReady = false;
+
+let masterCleanParts = [];
+let targetCleanParts = [];
+let enrichedPartsStore = [];
+let unmatchedPartsStore = [];
+
+let targetHeaders = [];
+
+function to10Digit(val) {
+  if (!val) return '';
+  const digits = String(val).replace(/\D+/g, '');
+  if (!digits) return '';
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+function initWorker() {
+  const blob = new Blob([document.getElementById('workerCode').textContent], { type: 'application/javascript' });
+  worker = new Worker(URL.createObjectURL(blob));
+
+  worker.onmessage = function(e) {
+    const data = e.data;
+
+    if (data.type === 'master_progress') {
+      document.getElementById('masterProgressWrap').style.display = 'block';
+      document.getElementById('masterProgressBar').style.width = data.percent + '%';
+      document.getElementById('masterProgressPct').textContent = data.percent + '%';
+      document.getElementById('masterStatusText').textContent = `Extracted ${data.count.toLocaleString()} records...`;
+    } else if (data.type === 'master_ready') {
+      isMasterReady = true;
+      masterCleanParts = data.cleanParts;
+      document.getElementById('masterProgressBar').style.width = '100%';
+      document.getElementById('masterProgressPct').textContent = '100%';
+      document.getElementById('masterStatusText').textContent = 'Clean 10-Digit Master Ready!';
+
+      const badge = document.getElementById('masterBadge');
+      badge.textContent = 'Ready';
+      badge.className = 'badge badge-ready';
+
+      const box = document.getElementById('masterStatusBox');
+      box.className = 'file-status-box status-loaded';
+      document.getElementById('masterStatusDesc').textContent = '✓ Master Processed (10-Digit Standardized)';
+      document.getElementById('masterCountText').textContent = data.count.toLocaleString() + ' records';
+
+      document.getElementById('btnDlMasterClean').disabled = false;
+      checkReady();
+    } else if (data.type === 'target_ready') {
+      isTargetReady = true;
+      targetCleanParts = data.cleanParts;
+      document.getElementById('targetProgressBar').style.width = '100%';
+      document.getElementById('targetProgressPct').textContent = '100%';
+      document.getElementById('targetStatusText').textContent = 'Clean 10-Digit Target Ready!';
+
+      const badge = document.getElementById('targetBadge');
+      badge.textContent = 'Ready';
+      badge.className = 'badge badge-ready';
+
+      const box = document.getElementById('targetStatusBox');
+      box.className = 'file-status-box status-loaded';
+      document.getElementById('targetStatusDesc').textContent = '✓ Target Processed (10-Digit Standardized)';
+      document.getElementById('targetCountText').textContent = data.count.toLocaleString() + ' rows';
+
+      document.getElementById('btnDlTargetClean').disabled = false;
+      checkReady();
+    } else if (data.type === 'match_completed') {
+      showMatchResults(data);
+    }
+  };
+}
+
+function checkReady() {
+  const btn = document.getElementById('btnStart');
+  if (isMasterReady && isTargetReady) {
+    btn.disabled = false;
+    document.getElementById('actionStatusDesc').textContent = 'Both files cleaned to 10-digit numbers. Click the button above to match.';
+  } else if (!isMasterReady && isTargetReady) {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Upload Master file to continue.';
+  } else if (isMasterReady && !isTargetReady) {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Upload Target file to continue.';
+  } else {
+    btn.disabled = true;
+    document.getElementById('actionStatusDesc').textContent = 'Load both files to begin.';
+  }
+}
+
+// MASTER FILE INGESTION
+document.getElementById('fileMaster').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('masterProgressWrap').style.display = 'block';
+  document.getElementById('masterStatusText').textContent = 'Reading Master file...';
+
+  const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+  if (isExcel) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      if (json.length < 2) return;
+      const headers = json[0].map(c => String(c || '').trim().toLowerCase());
+      let dslIdx = -1;
+      let voiceIdx = -1;
+
+      headers.forEach((h, idx) => {
+        if (dslIdx === -1 && h.includes('dsl')) dslIdx = idx;
+        if (voiceIdx === -1 && (h.includes('voice') || h.includes('mobile') || h.includes('phone') || h.includes('number'))) voiceIdx = idx;
+      });
+
+      if (dslIdx === -1) dslIdx = headers.length > 2 ? 2 : 0;
+      if (voiceIdx === -1) voiceIdx = headers.length > 3 ? 3 : 1;
+
+      const records = [];
+      for (let i = 1; i < json.length; i++) {
+        const row = json[i];
+        if (!row || row.length === 0) continue;
+        records.push({
+          dsl: row[dslIdx] !== undefined ? String(row[dslIdx]) : '',
+          voice: row[voiceIdx] !== undefined ? String(row[voiceIdx]) : ''
+        });
+      }
+
+      worker.postMessage({
+        action: 'process_master_records',
+        payload: { records }
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // CSV or Raw Text dump (handles any size, uses worker streaming)
+    worker.postMessage({
+      action: 'process_master_file',
+      payload: { file }
+    });
+  }
+});
+
+// TARGET FILE INGESTION
+document.getElementById('fileTarget').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  document.getElementById('targetProgressWrap').style.display = 'block';
+  document.getElementById('targetStatusText').textContent = 'Reading Target file...';
+
+  const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+  const reader = new FileReader();
+
+  reader.onload = function(evt) {
+    const data = new Uint8Array(evt.target.result);
+    let json = [];
+
+    if (isExcel) {
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+    } else {
+      const text = new TextDecoder('utf-8').decode(data);
+      for (let line of text.split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        json.push(line.split(',').map(s => s.replace(/^"|"$/g, '').trim()));
+      }
+    }
+
+    if (json.length === 0) return;
+    targetHeaders = json[0].map(c => String(c || '').trim());
+
+    // Auto find phone column
+    let bestIdx = -1;
+    targetHeaders.forEach((h, idx) => {
+      const hl = h.toLowerCase();
+      if (bestIdx === -1 && (hl.includes('voice') || hl.includes('mobile') || hl.includes('phone') || hl.includes('number') || hl.includes('dsl'))) {
+        bestIdx = idx;
+      }
+    });
+    if (bestIdx === -1) bestIdx = 0;
+
+    const dataRows = [];
+    for (let i = 1; i < json.length; i++) {
+      if (json[i] && json[i].length > 0) dataRows.push(json[i]);
+    }
+
+    worker.postMessage({
+      action: 'process_target_records',
+      payload: {
+        rows: dataRows,
+        phoneColIdx: bestIdx,
+        headers: targetHeaders
+      }
+    });
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function startMatchingProcess() {
+  const btn = document.getElementById('btnStart');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳ Matching 10-Digit Numbers...</span>';
+
+  worker.postMessage({
+    action: 'run_match',
+    payload: { targetHeader: targetHeaders }
+  });
+}
+
+function showMatchResults(data) {
+  const btn = document.getElementById('btnStart');
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡ RE-RUN MATCHING</span>';
+
+  enrichedPartsStore = data.enrichedParts;
+  unmatchedPartsStore = data.unmatchedParts;
+
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resTargetTotal').textContent = data.total.toLocaleString();
+  document.getElementById('resMatched').textContent = data.matchedCount.toLocaleString();
+  document.getElementById('resUnmatched').textContent = data.unmatchedCount.toLocaleString();
+  
+  const rate = data.total > 0 ? ((data.matchedCount / data.total) * 100).toFixed(1) : 0;
+  document.getElementById('resMatchRate').textContent = rate + '%';
+
+  const thead = document.getElementById('previewTableHead');
+  thead.innerHTML = '';
+  const fullCols = [...targetHeaders, 'Target_10Digit', 'DSL_ID', 'MATCH_STATUS'];
+  for (let col of fullCols) {
+    const th = document.createElement('th');
+    th.textContent = col;
+    thead.appendChild(th);
+  }
+
+  const tbody = document.getElementById('previewTableBody');
+  tbody.innerHTML = '';
+  for (let row of data.previewRows) {
+    const tr = document.createElement('tr');
+    for (let i = 0; i < row.length; i++) {
+      const td = document.createElement('td');
+      const val = row[i] !== undefined ? row[i] : '';
+      if (i === row.length - 1) {
+        const span = document.createElement('span');
+        span.className = val === 'MATCHED' ? 'status-badge status-matched' : 'status-badge status-unmatched';
+        span.textContent = val;
+        td.appendChild(span);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+function downloadBlob(parts, filename) {
+  const blob = new Blob(parts, { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function downloadMasterCleanCSV() {
+  downloadBlob(masterCleanParts, 'Master_Clean_10Digit_DSL.csv');
+}
+
+function downloadTargetCleanCSV() {
+  downloadBlob(targetCleanParts, 'Target_Clean_10Digit.csv');
+}
+
+function downloadEnriched() {
+  downloadBlob(enrichedPartsStore, 'Enriched_Target_With_DSL.csv');
+}
+
+function downloadUnmatched() {
+  downloadBlob(unmatchedPartsStore, 'Unmatched_Records.csv');
+}
+
+initWorker();
+</script>
+</body>
+</html>
